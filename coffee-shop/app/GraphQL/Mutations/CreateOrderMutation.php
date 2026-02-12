@@ -1,0 +1,57 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\GraphQL\Mutations;
+
+use App\Models\User;
+use App\Services\OrderService;
+use GraphQL\Type\Definition\ResolveInfo;
+use GraphQL\Type\Definition\Type;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use Rebing\GraphQL\Support\Facades\GraphQL;
+use Rebing\GraphQL\Support\Mutation;
+
+class CreateOrderMutation extends Mutation
+{
+    protected $attributes = [
+        'name' => 'createOrder',
+        'description' => 'Create a customer order',
+    ];
+
+    public function type(): Type
+    {
+        return GraphQL::type('Order');
+    }
+
+    public function args(): array
+    {
+        return [
+            'input' => [
+                'name' => 'input',
+                'type' => Type::nonNull(GraphQL::type('CreateOrderInput')),
+            ],
+        ];
+    }
+
+    public function resolve($root, array $args, $context, ResolveInfo $resolveInfo)
+    {
+        $input = $args['input'];
+        $user = null;
+
+        if (isset($input['user_id'])) {
+            $user = User::query()->find($input['user_id']);
+        } elseif (Auth::check()) {
+            $user = Auth::user();
+        }
+
+        if (!$user instanceof User) {
+            throw ValidationException::withMessages([
+                'user_id' => 'A valid user is required to create an order.',
+            ]);
+        }
+
+        return app(OrderService::class)->createOrder($user, $input['items']);
+    }
+}
