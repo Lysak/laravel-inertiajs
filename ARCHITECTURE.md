@@ -1,14 +1,14 @@
-# Архітектура тестового проєкту (Coffee Shop)
+# Demo Project Architecture (Coffee Shop)
 
-Дата: 2026-02-12
+Date: 2026-02-12
 
-## Цілі архітектури
-- Мінімальна, але реалістична структура для співбесід.
-- Демонстрація GraphQL, Inertia.js + React і типових проблем N+1/M+1.
-- Чіткий поділ бекенду (Laravel) і фронтенду (Inertia-React).
+## Architecture Goals
+- A minimal but realistic structure for interviews.
+- Demonstrate GraphQL, Inertia.js + React, and typical N+1/M+1 issues.
+- Clear separation between backend (Laravel) and frontend (Inertia + React).
 
-## Доменна модель
-### Сутності
+## Domain Model
+### Entities
 - **User**
   - role: admin | barista | customer
 - **Category**
@@ -24,30 +24,30 @@
   - belongsTo Order
   - belongsTo Drink
 
-### Зв’язки
+### Relationships
 - Category 1 — * Drink
 - User 1 — * Order
 - Order 1 — * OrderItem
 - Drink 1 — * OrderItem
 
-### Модель для N+1/M+1
-- **N+1**: список замовлень + для кожного замовлення лоадинг items + drink.
-- **M+1**: список напоїв + для кожного напою лоадинг категорії + статистики продажів.
+### N+1/M+1 Demonstration Model
+- **N+1**: an order list where each order loads its items and drink separately.
+- **M+1**: a drinks list where each drink loads its category and sales stats separately.
 
-## Архітектурні шари
+## Architecture Layers
 ### Backend (Laravel)
-- **HTTP**: Inertia контролери (SSR не обов’язковий).
-- **GraphQL**: `rebing/graphql-laravel` з окремими папками для:
+- **HTTP**: Inertia controllers (SSR is optional).
+- **GraphQL**: `rebing/graphql-laravel` with dedicated folders for:
   - Types
   - Queries
   - Mutations
   - Inputs
-- **Domain/Services** (простий service-layer):
-  - OrderService (створення/оплата)
-  - StatsService (агрегації)
+- **Domain/Services** (simple service layer):
+  - OrderService (creation/payment)
+  - StatsService (aggregations)
 - **Data access**:
   - Eloquent + eager loading
-  - GraphQL DataLoader (batching) для уникнення N+1
+  - GraphQL DataLoader (batching) to avoid N+1
 
 ### Frontend (Inertia + React)
 - **Pages**:
@@ -56,38 +56,38 @@
   - Orders/Show
   - Drinks/Index
 - **UI flow**:
-  - Списки → деталі
-  - Ті ж дані доступні через GraphQL для демонстрації N+1/M+1
+  - Lists -> details
+  - The same data is available through GraphQL to demonstrate N+1/M+1
 
-## Потоки даних
+## Data Flows
 ### Inertia flow
 1. React page → Inertia visit
 2. Laravel controller → Eloquent queries
-3. Повернення props → React рендер
+3. Return props -> React render
 
 ### GraphQL flow
 1. React/Any client → GraphQL endpoint
 2. Resolver → Eloquent
-3. DataLoader/batching → оптимізовані запити
+3. DataLoader/batching -> optimized queries
 
-## Приклади N+1 / M+1
-### N+1 приклад (Orders)
-- Запит: `orders { id items { id drink { id name } } }`
-- Проблема: для кожного Order окремі запити до OrderItems і Drink.
-- Рішення:
+## N+1 / M+1 Examples
+### N+1 Example (Orders)
+- Query: `orders { id items { id drink { id name } } }`
+- Problem: each Order triggers separate queries for OrderItems and Drink.
+- Solution:
   - Eager loading `with(['items.drink'])`
-  - DataLoader для Drink
+  - DataLoader for Drink
 
-### M+1 приклад (Drinks + Stats)
-- Запит: `drinks { id name category { id name } stats { totalSold } }`
-- Проблема: кожен напій тягне category і stats окремо.
-- Рішення:
+### M+1 Example (Drinks + Stats)
+- Query: `drinks { id name category { id name } stats { totalSold } }`
+- Problem: each drink loads category and stats separately.
+- Solution:
   - Eager loading `with('category')`
-  - Aggregate query для stats через groupBy
-  - DataLoader для stats
+  - Aggregate query for stats using `groupBy`
+  - DataLoader for stats
 
-## Модулі та папки (попередньо)
-- `app/Models` — Eloquent моделі
+## Modules and Folders (Preliminary)
+- `app/Models` — Eloquent models
 - `app/GraphQL/Types`
 - `app/GraphQL/Queries`
 - `app/GraphQL/Mutations`
@@ -96,11 +96,11 @@
 - `app/Http/Controllers`
 - `resources/js/Pages`
 
-## Нефункціональні вимоги
-- Biome як форматтер/лінтер для фронтенду
-- pnpm як менеджер пакетів
-- nvm: остання LTS/Stable
+## Non-Functional Requirements
+- Biome as the formatter/linter for the frontend
+- pnpm as the package manager
+- nvm: latest LTS/Stable
 
-## Відкриті питання
-- Чи робимо SSR для Inertia? (за замовчуванням — ні)
-- Чи потрібні тести для GraphQL резолверів?
+## Open Questions
+- Should we use SSR for Inertia? (default: no)
+- Do we need tests for GraphQL resolvers?

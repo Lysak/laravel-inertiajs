@@ -1,8 +1,8 @@
-# План структури проєкту та початкові конфіги
+# Project Structure Plan and Initial Configuration
 
-Дата: 2026-02-12
+Date: 2026-02-12
 
-## 1) Структура директорій (після ініціалізації Laravel)
+## 1) Directory Structure (After Laravel Initialization)
 ```
 app/
   GraphQL/
@@ -25,23 +25,23 @@ routes/
   graphql.php
 ```
 
-## 2) Початкові кроки ініціалізації
-1. Створити Laravel-проєкт (latest).
-2. Додати Inertia.js + React preset.
-3. Додати `rebing/graphql-laravel`.
-4. Налаштувати pnpm для фронтенду.
-5. Налаштувати Biome.
-6. Зафіксувати nvm (node latest LTS/Stable).
+## 2) Initial Setup Steps
+1. Create the Laravel project (latest).
+2. Add the Inertia.js + React preset.
+3. Add `rebing/graphql-laravel`.
+4. Configure pnpm for the frontend.
+5. Configure Biome.
+6. Pin Node via nvm to the latest LTS/Stable version.
 
-## 3) Файли конфігурації (очікувані)
-- `.nvmrc` — версія node
-- `biome.json` — конфіг Biome
-- `package.json` — pnpm + скрипти
+## 3) Configuration Files (Expected)
+- `.nvmrc` — Node version
+- `biome.json` — Biome configuration
+- `package.json` — pnpm + scripts
 - `vite.config.js` — React + Inertia
-- `config/graphql.php` — налаштування rebing/graphql-laravel
+- `config/graphql.php` — rebing/graphql-laravel configuration
 - `routes/graphql.php` — GraphQL endpoint
 
-## 4) Початкові пакети
+## 4) Initial Packages
 ### PHP
 - laravel/framework (latest)
 - rebing/graphql-laravel (latest)
@@ -53,19 +53,19 @@ routes/
 - vite (latest)
 - biome (latest)
 
-## 5) Скрипти (package.json)
-- `dev`: запуск Vite
-- `build`: збірка
+## 5) Scripts (`package.json`)
+- `dev`: start Vite
+- `build`: production build
 - `lint`: biome lint
 - `format`: biome format
 
-## 6) Мінімальні сторінки (React)
-- `Dashboard` — коротка панель
-- `Orders/Index` — список замовлень
-- `Orders/Show` — деталі замовлення
-- `Drinks/Index` — список напоїв
+## 6) Minimal Pages (React)
+- `Dashboard` — compact overview panel
+- `Orders/Index` — order list
+- `Orders/Show` — order details
+- `Drinks/Index` — drinks list
 
-## 7) Наступні дії
-1. Підтвердити ініціалізацію Laravel та стек.
-2. Створити базову структуру файлів і конфігів.
-3. Додати початкові сторінки та маршрути.
+## 7) Next Actions
+1. Confirm Laravel initialization and the selected stack.
+2. Create the base file and configuration structure.
+3. Add the initial pages and routes.

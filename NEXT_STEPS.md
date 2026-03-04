@@ -1,43 +1,43 @@
-# Поточний аналіз і продовження
+# Current Analysis and Next Actions
 
-Дата: 2026-02-12
+Date: 2026-02-12
 
-## Що вже є в папці
-- `PROJECT_BRIEF.md` — цілі, стек і вимоги.
-- `PROJECT_STRUCTURE.md` — цільова структура та базові конфіги.
-- `ARCHITECTURE.md` — доменна модель і шари застосунку.
+## What Already Exists in the Folder
+- `PROJECT_BRIEF.md` — goals, stack, and requirements.
+- `PROJECT_STRUCTURE.md` — target structure and base configuration.
+- `ARCHITECTURE.md` — domain model and application layers.
 
-## Висновок з аналізу
-- Це підготовчий етап документації.
-- Код Laravel/Inertia/GraphQL ще не ініціалізовано.
-- Локальне оточення готове частково:
+## Analysis Summary
+- This is the preparatory documentation phase.
+- The Laravel/Inertia/GraphQL codebase had not been initialized yet.
+- The local environment is partially ready:
   - PHP: `8.4.16`
   - Composer: `2.8.4`
   - Node: `v22.17.1`
   - pnpm: `10.28.2`
-  - `nvm` не знайдено в поточній shell-сесії
+  - `nvm` was not found in the current shell session
 
-## Поточний блокер
-- Ініціалізація Laravel через Composer зараз неможлива через відсутність доступу до `repo.packagist.org`:
+## Current Blocker
+- Laravel initialization via Composer is currently impossible because `repo.packagist.org` is unreachable:
   - `curl error 6 ... Could not resolve host: repo.packagist.org`
 
-## Що робити далі, коли буде мережа
-1. Ініціалізувати Laravel (рекомендовано в окрему папку, щоб не втратити документи):
+## What To Do Next Once Network Access Is Available
+1. Initialize Laravel (recommended in a separate folder so the documents are not lost):
    - `composer create-project laravel/laravel coffee-shop`
-2. Встановити Inertia + React (через офіційний starter/preset для вашої версії Laravel).
-3. Додати GraphQL пакет:
+2. Install Inertia + React (using the official starter/preset for your Laravel version).
+3. Add the GraphQL package:
    - `composer require rebing/graphql-laravel`
-4. Налаштувати фронтенд залежності через pnpm:
+4. Configure frontend dependencies with pnpm:
    - `pnpm install`
-5. Перенести узгоджені модулі з `ARCHITECTURE.md`:
+5. Move the agreed modules from `ARCHITECTURE.md`:
    - `app/GraphQL/{Types,Queries,Mutations,Inputs}`
    - `app/Services`
    - `resources/js/Pages`
-6. Реалізувати мінімальний вертикальний зріз:
-   - `Drink`/`Category` моделі + міграції
-   - 1 GraphQL query для списку напоїв
-   - 1 Inertia-сторінка для відображення
+6. Implement a minimal vertical slice:
+   - `Drink`/`Category` models + migrations
+   - 1 GraphQL query for the drinks list
+   - 1 Inertia page for rendering
 
-## Що вже додано в цій папці для старту
+## What Has Already Been Added in This Folder
 - `.nvmrc` — `22.17.1`
-- `biome.json` — базовий конфіг форматування/лінту
+- `biome.json` — base formatting/linting configuration

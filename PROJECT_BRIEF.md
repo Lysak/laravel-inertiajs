@@ -1,60 +1,60 @@
-# Тестовий проєкт для підготовки до співбесід
+# Demo Project for Interview Preparation
 
-Дата: 2026-02-12
+Date: 2026-02-12
 
-## Мета
-Створити навчальний/демо-проєкт, щоб підготуватися до співбесід і подивитися, як усе працює в реальному стеку.
+## Goal
+Create a learning/demo project to prepare for interviews and understand how everything works in a real-world stack.
 
-## Ключові вимоги
-- **Backend:** Laravel (остання версія на 2026)
-- **Frontend:** Inertia.js + React (останні версії на 2026)
-- **API:** GraphQL (остання версія на 2026)
-- **Проблеми продуктивності:** приклади та вирішення N+1 і M+1 проблем
-- **Пакетний менеджер:** pnpm
-- **Форматування/лінт:** Biome
-- **Node.js:** nvm, встановлення останньої LTS/Stable на 2026, створи .nvmrc
+## Key Requirements
+- **Backend:** Laravel (latest version available in 2026)
+- **Frontend:** Inertia.js + React (latest versions available in 2026)
+- **API:** GraphQL (latest version available in 2026)
+- **Performance issues:** examples of N+1 and M+1 problems and their solutions
+- **Package manager:** pnpm
+- **Formatting/linting:** Biome
+- **Node.js:** nvm, install the latest LTS/Stable version available in 2026, create `.nvmrc`
 
-## Результат на першому етапі
-- Один документ із чітко описаними вимогами, цілями та очікуваною архітектурою (цей файл).
-- На основі цього документу буде будуватися архітектура і решта функцій.
+## First-Phase Deliverable
+- A single document that clearly describes the requirements, goals, and expected architecture (this file).
+- The architecture and the remaining functionality will be built based on this document.
 
-## Запланований домен (можна змінити)
-Пропозиція: *Coffee shop / кав'ярня* — проста предметна область, де легко демонструвати:
-- зв’язки «one-to-many» і «many-to-many»
-- GraphQL запити, які можуть викликати N+1
-- оптимізації через eager loading / DataLoader
+## Planned Domain (Can Be Changed)
+Proposal: *Coffee shop* — a simple domain where it is easy to demonstrate:
+- one-to-many and many-to-many relationships
+- GraphQL queries that can trigger N+1
+- optimizations through eager loading / DataLoader
 
-## Функціональні вимоги (чернетка)
-1. **Аутентифікація**: базова (login/register), мінімальна.
+## Functional Requirements (Draft)
+1. **Authentication**: basic login/register, minimal setup.
 2. **CRUD**:
-   - Напої (Drinks)
-   - Категорії (Categories)
-   - Замовлення (Orders)
-   - Позиції замовлення (Order Items)
+   - Drinks
+   - Categories
+   - Orders
+   - Order Items
 3. **GraphQL API**:
-   - Мінімальний набір query/mutation
-   - Демонстрація N+1 та оптимізованих варіантів
-4. **UI через Inertia + React**:
-   - Сторінки списків і деталей
-   - Приклад запиту, що провокує N+1 та N+1 + M+1
-   - Оптимізований запит
+   - Minimal set of queries/mutations
+   - Demonstration of N+1 and optimized alternatives
+4. **UI via Inertia + React**:
+   - List and detail pages
+   - Example of a query that triggers N+1 and N+1 + M+1
+   - Optimized query
 
-## Нефункціональні вимоги
-- Типова структура Laravel + Inertia
-- Конфіг Biome для форматування/лінту
-- Використання pnpm для фронтенду
-- Документація запуску
+## Non-Functional Requirements
+- Standard Laravel + Inertia structure
+- Biome configuration for formatting/linting
+- Use pnpm for the frontend
+- Startup documentation
 
-## Технічні рішення (будуть уточнені)
+## Technical Decisions (To Be Refined)
 - GraphQL: rebing/graphql-laravel
-- N+1/M+1: (описати стратегії для Laravel/GraphQL)
-- Тести: (мінімальні приклади, якщо потрібно)
+- N+1/M+1: (describe strategies for Laravel/GraphQL)
+- Tests: (minimal examples, if needed)
 
-## План наступних кроків
-1. Узгодити домен (залишаємо чи міняємо).
-2. Зафіксувати архітектурні рішення.
-3. Створити структуру проєкту та початкову конфігурацію.
+## Next Steps Plan
+1. Agree on the domain (keep it or change it).
+2. Finalize the architectural decisions.
+3. Create the project structure and initial configuration.
 
 ---
 
-*Примітка:* Потрібно підтвердити «останню версію» кожної технології на 2026 під час старту (через офіційні джерела).
+*Note:* The "latest version" of each technology for 2026 should be confirmed at project start using official sources.

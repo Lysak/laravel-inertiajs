@@ -1,0 +1,67 @@
+query OrdersQuery($limit: Int!) {
+    orders(limit: $limit) {
+        id
+        customer_name
+        status
+        items_count
+        total
+        created_at
+    }
+}
+
+query OrderQuery($id: ID!) {
+    order(id: $id) {
+        id
+        customer_name
+        customer_email
+        status
+        total
+        items {
+            id
+            drink_name
+            quantity
+            unit_price
+            line_total
+        }
+    }
+}
+
+query OrderCreateDataQuery {
+    orderCreateData {
+        anonymous_customer {
+            id
+            name
+        }
+        categories {
+            id
+            name
+            drinks {
+                id
+                name
+                price
+            }
+        }
+    }
+}
+
+mutation CreateOrderMutation($input: CreateOrderInput!) {
+    createOrder(input: $input) {
+        id
+        customer_name
+        status
+        items_count
+        total
+        created_at
+    }
+}
+
+mutation MarkOrderPaidMutation($orderId: ID!) {
+    markOrderPaid(order_id: $orderId) {
+        id
+        customer_name
+        status
+        items_count
+        total
+        created_at
+    }
+}
