@@ -1,10 +1,17 @@
+import type { ButtonHTMLAttributes, ReactNode } from 'react'
+
+type SecondaryButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+    className?: string
+    children: ReactNode
+}
+
 export default function SecondaryButton({
     type = 'button',
     className = '',
-    disabled,
+    disabled = false,
     children,
     ...props
-}) {
+}: SecondaryButtonProps) {
     return (
         <button
             {...props}

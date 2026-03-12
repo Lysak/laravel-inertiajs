@@ -24,11 +24,11 @@ Run commands from `coffee-shop/` unless noted.
 
 ## Coding Style & Naming Conventions
 - PHP: follow Laravel conventions; format with `vendor/bin/pint` before PRs.
-- JS/React: Biome rules apply (`4` spaces, single quotes, semicolons as needed, 100-char line width).
+- TS/React: frontend code must use TypeScript only. New files should be `.ts`/`.tsx`; do not add `.js`/`.jsx` files. Biome rules apply (`4` spaces, single quotes, semicolons as needed, 100-char line width).
 - React/Inertia: build UI through components first. Pages should orchestrate data and compose reusable components instead of owning large markup blocks directly.
 - React/Inertia: shared UI must be reused, not copied. If the same table, card, form field group, section shell, or interaction pattern appears in more than one place, extract it into a component and use that component everywhere.
 - React/Inertia: do not duplicate React UI code across pages or components. Put cross-page UI in `resources/js/Components` and page-scoped building blocks in a nearby `Components` or `Partials` folder.
-- Use descriptive names by responsibility: `OrderService`, `CreateOrderMutation`, `OrdersQuery`, `Orders/Show.jsx`.
+- Use descriptive names by responsibility: `OrderService`, `CreateOrderMutation`, `OrdersQuery`, `Orders/Show.tsx`.
 - Keep GraphQL types/queries/mutations in their dedicated folders.
 - Always use dependency injection for services/classes; avoid `app(...)` service-locator calls in application code.
 

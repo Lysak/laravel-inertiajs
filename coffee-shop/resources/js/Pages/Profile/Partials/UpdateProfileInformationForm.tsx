@@ -6,7 +6,7 @@ import { Transition } from '@headlessui/react'
 import { Link, useForm, usePage } from '@inertiajs/react'
 
 export default function UpdateProfileInformation({ mustVerifyEmail, status, className = '' }) {
-    const user = usePage().props.auth.user
+    const user = usePage<AppPageProps>().props.auth.user
 
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
         name: user.name,
@@ -37,7 +37,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
                         id="name"
                         className="mt-1 block w-full"
                         value={data.name}
-                        onChange={(e) => setData('name', e.target.value)}
+                        onChange={(e) => setData('name', e.target.value as never)}
                         required
                         isFocused
                         autoComplete="name"
@@ -54,7 +54,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
                         type="email"
                         className="mt-1 block w-full"
                         value={data.email}
-                        onChange={(e) => setData('email', e.target.value)}
+                        onChange={(e) => setData('email', e.target.value as never)}
                         required
                         autoComplete="username"
                     />

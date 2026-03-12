@@ -1,10 +1,49 @@
+import type { ComponentProps, ReactNode } from 'react'
 import { Transition } from '@headlessui/react'
 import { Link } from '@inertiajs/react'
 import { createContext, useContext, useState } from 'react'
 
-const DropDownContext = createContext()
+type DropdownContextValue = {
+    open: boolean
+    setOpen: (open: boolean) => void
+    toggleOpen: () => void
+}
 
-const Dropdown = ({ children }) => {
+type DropdownProps = {
+    children: ReactNode
+}
+
+type ContentProps = {
+    align?: 'left' | 'right'
+    width?: '48'
+    contentClasses?: string
+    children: ReactNode
+}
+
+type LinkProps = {
+    className?: string
+    children: ReactNode
+} & ComponentProps<typeof Link>
+
+type DropdownComponent = ((props: DropdownProps) => ReactNode) & {
+    Trigger: (props: DropdownProps) => ReactNode
+    Content: (props: ContentProps) => ReactNode
+    Link: (props: LinkProps) => ReactNode
+}
+
+const DropDownContext = createContext<DropdownContextValue | null>(null)
+
+const useDropdownContext = () => {
+    const context = useContext(DropDownContext)
+
+    if (!context) {
+        throw new Error('Dropdown components must be used inside Dropdown')
+    }
+
+    return context
+}
+
+const Dropdown = (({ children }: DropdownProps) => {
     const [open, setOpen] = useState(false)
 
     const toggleOpen = () => {
@@ -16,10 +55,10 @@ const Dropdown = ({ children }) => {
             <div className="relative">{children}</div>
         </DropDownContext.Provider>
     )
-}
+}) as DropdownComponent
 
-const Trigger = ({ children }) => {
-    const { open, setOpen, toggleOpen } = useContext(DropDownContext)
+const Trigger = ({ children }: DropdownProps) => {
+    const { open, setOpen, toggleOpen } = useDropdownContext()
 
     return (
         <>
@@ -30,8 +69,13 @@ const Trigger = ({ children }) => {
     )
 }
 
-const Content = ({ align = 'right', width = '48', contentClasses = 'py-1 bg-white', children }) => {
-    const { open, setOpen } = useContext(DropDownContext)
+const Content = ({
+    align = 'right',
+    width = '48',
+    contentClasses = 'py-1 bg-white',
+    children,
+}: ContentProps) => {
+    const { open, setOpen } = useDropdownContext()
 
     let alignmentClasses = 'origin-top'
 
@@ -73,7 +117,7 @@ const Content = ({ align = 'right', width = '48', contentClasses = 'py-1 bg-whit
     )
 }
 
-const DropdownLink = ({ className = '', children, ...props }) => {
+const DropdownLink = ({ className = '', children, ...props }: LinkProps) => {
     return (
         <Link
             {...props}

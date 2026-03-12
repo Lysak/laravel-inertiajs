@@ -1,14 +1,14 @@
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import PrimaryButton from '@/Components/PrimaryButton'
-import TextInput from '@/Components/TextInput'
+import TextInput, { type TextInputHandle } from '@/Components/TextInput'
 import { Transition } from '@headlessui/react'
 import { useForm } from '@inertiajs/react'
 import { useRef } from 'react'
 
 export default function UpdatePasswordForm({ className = '' }) {
-    const passwordInput = useRef()
-    const currentPasswordInput = useRef()
+    const passwordInput = useRef<TextInputHandle>(null)
+    const currentPasswordInput = useRef<TextInputHandle>(null)
 
     const { data, setData, errors, put, reset, processing, recentlySuccessful } = useForm({
         current_password: '',
@@ -25,12 +25,12 @@ export default function UpdatePasswordForm({ className = '' }) {
             onError: (errors) => {
                 if (errors.password) {
                     reset('password', 'password_confirmation')
-                    passwordInput.current.focus()
+                    passwordInput.current?.focus()
                 }
 
                 if (errors.current_password) {
                     reset('current_password')
-                    currentPasswordInput.current.focus()
+                    currentPasswordInput.current?.focus()
                 }
             },
         })
