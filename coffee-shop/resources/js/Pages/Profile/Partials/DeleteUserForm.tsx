@@ -4,10 +4,15 @@ import InputLabel from '@/Components/InputLabel'
 import Modal from '@/Components/Modal'
 import SecondaryButton from '@/Components/SecondaryButton'
 import TextInput, { type TextInputHandle } from '@/Components/TextInput'
+import type { DeleteUserFormData } from '@/types/forms'
 import { useForm } from '@inertiajs/react'
-import { useRef, useState } from 'react'
+import { useRef, useState, type ChangeEvent, type SubmitEvent } from 'react'
 
-export default function DeleteUserForm({ className = '' }) {
+type DeleteUserFormProps = {
+    className?: string
+}
+
+export default function DeleteUserForm({ className = '' }: DeleteUserFormProps) {
     const [confirmingUserDeletion, setConfirmingUserDeletion] = useState(false)
     const passwordInput = useRef<TextInputHandle>(null)
 
@@ -19,7 +24,7 @@ export default function DeleteUserForm({ className = '' }) {
         reset,
         errors,
         clearErrors,
-    } = useForm({
+    } = useForm<DeleteUserFormData>({
         password: '',
     })
 
@@ -27,8 +32,8 @@ export default function DeleteUserForm({ className = '' }) {
         setConfirmingUserDeletion(true)
     }
 
-    const deleteUser = (e) => {
-        e.preventDefault()
+    const deleteUser = (event: SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault()
 
         destroy(route('profile.destroy'), {
             preserveScroll: true,
@@ -43,6 +48,10 @@ export default function DeleteUserForm({ className = '' }) {
 
         clearErrors()
         reset()
+    }
+
+    const handlePasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setData('password', event.target.value)
     }
 
     return (
@@ -80,7 +89,7 @@ export default function DeleteUserForm({ className = '' }) {
                             name="password"
                             ref={passwordInput}
                             value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
+                            onChange={handlePasswordChange}
                             className="mt-1 block w-3/4"
                             isFocused
                             placeholder="Password"

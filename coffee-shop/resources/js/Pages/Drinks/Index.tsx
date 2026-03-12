@@ -1,15 +1,21 @@
+import { Head } from '@inertiajs/react'
 import DataTable from '@/Components/DataTable'
 import PageSection from '@/Components/PageSection'
 import SurfaceCard from '@/Components/SurfaceCard'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import { Head } from '@inertiajs/react'
+import CreateDrinkForm from '@/Pages/Drinks/Partials/CreateDrinkForm'
+import type { DrinksIndexProps } from '@/types/page-props'
 
-export default function DrinksIndex({ drinks }) {
+export default function DrinksIndex({ drinks, categories }: DrinksIndexProps) {
     return (
         <AuthenticatedLayout
             header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Drinks</h2>}
         >
             <Head title="Drinks" />
+
+            <PageSection>
+                <CreateDrinkForm categories={categories} />
+            </PageSection>
 
             <PageSection>
                 <SurfaceCard className="overflow-hidden p-6">
@@ -21,7 +27,9 @@ export default function DrinksIndex({ drinks }) {
                             {drinks.map((drink) => (
                                 <DataTable.Row key={drink.id}>
                                     <DataTable.Cell>{drink.name}</DataTable.Cell>
-                                    <DataTable.Cell>{drink.category}</DataTable.Cell>
+                                    <DataTable.Cell>
+                                        {drink.category ?? 'Uncategorized'}
+                                    </DataTable.Cell>
                                     <DataTable.Cell>${drink.price.toFixed(2)}</DataTable.Cell>
                                     <DataTable.Cell>
                                         {drink.is_available ? 'Yes' : 'No'}

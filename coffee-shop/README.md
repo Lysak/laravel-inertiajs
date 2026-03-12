@@ -13,6 +13,76 @@
 - React components and Inertia pages must use `.tsx`.
 - Non-React frontend modules must use `.ts`.
 - Do not add new `.js` or `.jsx` files to the application source tree.
+- Mark service, action, and query classes as `readonly` when all their state is constructor-injected and immutable.
+- Mark anonymous functions as `static` whenever they do not use `$this`, late static binding, or closure rebinding.
+
+## GraphQL Examples
+
+Create a drink with GraphQL:
+
+```graphql
+mutation CreateDrink($input: CreateDrinkInput!) {
+  createDrink(input: $input) {
+    id
+    name
+    price
+    is_available
+    category {
+      id
+      name
+    }
+  }
+}
+```
+
+Variables:
+
+```json
+{
+  "input": {
+    "category_id": 1,
+    "name": "Orange Tonic",
+    "price": 4.75,
+    "is_available": true
+  }
+}
+```
+
+Filter drinks and request only the fields you need:
+
+```graphql
+query FilteredDrinks($categoryId: ID!) {
+  drinks(
+    category_id: $categoryId
+    search: "tonic"
+    is_available: true
+    min_price: 4
+    max_price: 8
+    sort_by: "price"
+    sort_direction: "desc"
+    with_stats: true
+  ) {
+    id
+    name
+    price
+    category {
+      name
+    }
+    stats {
+      total_sold
+      revenue
+    }
+  }
+}
+```
+
+Typical GraphQL patterns used here:
+
+- field selection: client asks only for `id`, `name`, `price`, or nested `category`
+- filtering: `search`, `category_id`, `is_available`, `min_price`, `max_price`
+- sorting: `sort_by`, `sort_direction`
+- nested relations: `category { name }`
+- optional expensive fields: `with_stats` when you need sales metrics
 
 ## About Laravel
 

@@ -1,12 +1,14 @@
 import PrimaryButton from '@/Components/PrimaryButton'
 import GuestLayout from '@/Layouts/GuestLayout'
+import type { StatusPageProps } from '@/types/inertia'
 import { Head, Link, useForm } from '@inertiajs/react'
+import type { SubmitEvent } from 'react'
 
-export default function VerifyEmail({ status }) {
+export default function VerifyEmail({ status }: StatusPageProps) {
     const { post, processing } = useForm({})
 
-    const submit = (e) => {
-        e.preventDefault()
+    const submit = (event: SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault()
 
         post(route('verification.send'))
     }

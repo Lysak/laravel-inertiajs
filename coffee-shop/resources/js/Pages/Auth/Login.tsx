@@ -4,21 +4,36 @@ import InputLabel from '@/Components/InputLabel'
 import PrimaryButton from '@/Components/PrimaryButton'
 import TextInput from '@/Components/TextInput'
 import GuestLayout from '@/Layouts/GuestLayout'
+import type { LoginFormData } from '@/types/forms'
+import type { LoginPageProps } from '@/types/inertia'
 import { Head, Link, useForm } from '@inertiajs/react'
+import type { ChangeEvent, SubmitEvent } from 'react'
 
-export default function Login({ status, canResetPassword }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
+export default function Login({ status, canResetPassword }: LoginPageProps) {
+    const { data, setData, post, processing, errors, reset } = useForm<LoginFormData>({
         email: '',
         password: '',
         remember: false,
     })
 
-    const submit = (e) => {
-        e.preventDefault()
+    const submit = (event: SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault()
 
         post(route('login'), {
             onFinish: () => reset('password'),
         })
+    }
+
+    const handleEmailChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setData('email', event.target.value)
+    }
+
+    const handlePasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setData('password', event.target.value)
+    }
+
+    const handleRememberChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setData('remember', event.target.checked)
     }
 
     return (
@@ -39,7 +54,7 @@ export default function Login({ status, canResetPassword }) {
                         className="mt-1 block w-full"
                         autoComplete="username"
                         isFocused={true}
-                        onChange={(e) => setData('email', e.target.value)}
+                        onChange={handleEmailChange}
                     />
 
                     <InputError message={errors.email} className="mt-2" />
@@ -55,7 +70,7 @@ export default function Login({ status, canResetPassword }) {
                         value={data.password}
                         className="mt-1 block w-full"
                         autoComplete="current-password"
-                        onChange={(e) => setData('password', e.target.value)}
+                        onChange={handlePasswordChange}
                     />
 
                     <InputError message={errors.password} className="mt-2" />
@@ -66,7 +81,7 @@ export default function Login({ status, canResetPassword }) {
                         <Checkbox
                             name="remember"
                             checked={data.remember}
-                            onChange={(e) => setData('remember', e.target.checked)}
+                            onChange={handleRememberChange}
                         />
                         <span className="ms-2 text-sm text-gray-600">Remember me</span>
                     </label>

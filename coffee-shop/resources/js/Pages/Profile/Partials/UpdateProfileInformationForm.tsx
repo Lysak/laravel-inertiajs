@@ -2,21 +2,37 @@ import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import PrimaryButton from '@/Components/PrimaryButton'
 import TextInput from '@/Components/TextInput'
+import type { UpdateProfileInformationFormData } from '@/types/forms'
+import type { UpdateProfileInformationFormProps } from '@/types/page-props'
 import { Transition } from '@headlessui/react'
 import { Link, useForm, usePage } from '@inertiajs/react'
+import type { ChangeEvent, SubmitEvent } from 'react'
 
-export default function UpdateProfileInformation({ mustVerifyEmail, status, className = '' }) {
+export default function UpdateProfileInformation({
+    mustVerifyEmail,
+    status,
+    className = '',
+}: UpdateProfileInformationFormProps) {
     const user = usePage<AppPageProps>().props.auth.user
 
-    const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
-        name: user.name,
-        email: user.email,
-    })
+    const { data, setData, patch, errors, processing, recentlySuccessful } =
+        useForm<UpdateProfileInformationFormData>({
+            name: user.name,
+            email: user.email,
+        })
 
-    const submit = (e) => {
-        e.preventDefault()
+    const submit = (event: SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault()
 
         patch(route('profile.update'))
+    }
+
+    const handleNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setData('name', event.target.value)
+    }
+
+    const handleEmailChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setData('email', event.target.value)
     }
 
     return (
@@ -37,7 +53,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
                         id="name"
                         className="mt-1 block w-full"
                         value={data.name}
-                        onChange={(e) => setData('name', e.target.value as never)}
+                        onChange={handleNameChange}
                         required
                         isFocused
                         autoComplete="name"
@@ -54,7 +70,7 @@ export default function UpdateProfileInformation({ mustVerifyEmail, status, clas
                         type="email"
                         className="mt-1 block w-full"
                         value={data.email}
-                        onChange={(e) => setData('email', e.target.value as never)}
+                        onChange={handleEmailChange}
                         required
                         autoComplete="username"
                     />

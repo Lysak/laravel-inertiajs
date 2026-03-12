@@ -2,9 +2,10 @@ import DataTable from '@/Components/DataTable'
 import PageSection from '@/Components/PageSection'
 import SurfaceCard from '@/Components/SurfaceCard'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+import type { OrdersIndexProps } from '@/types/page-props'
 import { Head, Link } from '@inertiajs/react'
 
-export default function OrdersIndex({ orders }) {
+export default function OrdersIndex({ orders }: OrdersIndexProps) {
     return (
         <AuthenticatedLayout
             header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Orders</h2>}

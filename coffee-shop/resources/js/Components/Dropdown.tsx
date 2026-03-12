@@ -43,7 +43,7 @@ const useDropdownContext = () => {
     return context
 }
 
-const Dropdown = (({ children }: DropdownProps) => {
+function DropdownRoot({ children }: DropdownProps) {
     const [open, setOpen] = useState(false)
 
     const toggleOpen = () => {
@@ -55,7 +55,7 @@ const Dropdown = (({ children }: DropdownProps) => {
             <div className="relative">{children}</div>
         </DropDownContext.Provider>
     )
-}) as DropdownComponent
+}
 
 const Trigger = ({ children }: DropdownProps) => {
     const { open, setOpen, toggleOpen } = useDropdownContext()
@@ -131,8 +131,10 @@ const DropdownLink = ({ className = '', children, ...props }: LinkProps) => {
     )
 }
 
-Dropdown.Trigger = Trigger
-Dropdown.Content = Content
-Dropdown.Link = DropdownLink
+const Dropdown: DropdownComponent = Object.assign(DropdownRoot, {
+    Trigger,
+    Content,
+    Link: DropdownLink,
+})
 
 export default Dropdown

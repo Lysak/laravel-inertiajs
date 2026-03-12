@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 return [
     // The HTTP endpoint is defined in routes/graphql.php.
@@ -67,11 +67,13 @@ return [
             'mutation' => [
                 App\GraphQL\Mutations\CreateOrderMutation::class,
                 App\GraphQL\Mutations\MarkOrderPaidMutation::class,
+                App\GraphQL\Mutations\CreateDrinkMutation::class,
             ],
             // The types only available in this schema
             'types' => [
                 App\GraphQL\Inputs\CreateOrderInput::class,
                 App\GraphQL\Inputs\CreateOrderItemInput::class,
+                App\GraphQL\Inputs\CreateDrinkInput::class,
             ],
 
             // Laravel HTTP middleware
@@ -110,6 +112,7 @@ return [
         'DrinkStats' => App\GraphQL\Types\DrinkStatsType::class,
         'CreateOrderInput' => App\GraphQL\Inputs\CreateOrderInput::class,
         'CreateOrderItemInput' => App\GraphQL\Inputs\CreateOrderItemInput::class,
+        'CreateDrinkInput' => App\GraphQL\Inputs\CreateDrinkInput::class,
         // \Rebing\GraphQL\Support\UploadType::class,
     ],
 

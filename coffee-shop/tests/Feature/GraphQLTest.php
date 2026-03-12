@@ -94,4 +94,101 @@ class GraphQLTest extends TestCase
             'status' => 'new',
         ]);
     }
+
+    public function test_create_drink_mutation_creates_catalog_item(): void
+    {
+        $category = Category::factory()->create(['name' => 'Seasonal']);
+
+        $response = $this->postJson('/graphql', [
+            'query' => '
+                mutation CreateDrink($input: CreateDrinkInput!) {
+                    createDrink(input: $input) {
+                        id
+                        name
+                        price
+                        is_available
+                        category {
+                            id
+                            name
+                        }
+                    }
+                }
+            ',
+            'variables' => [
+                'input' => [
+                    'category_id' => $category->id,
+                    'name' => 'Orange Tonic',
+                    'price' => 4.75,
+                    'is_available' => true,
+                ],
+            ],
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('data.createDrink.name', 'Orange Tonic')
+            ->assertJsonPath('data.createDrink.category.name', 'Seasonal')
+            ->assertJsonPath('data.createDrink.is_available', true);
+
+        $this->assertDatabaseHas('drinks', [
+            'category_id' => $category->id,
+            'name' => 'Orange Tonic',
+        ]);
+    }
+
+    public function test_drinks_query_supports_filtering_sorting_and_requested_fields(): void
+    {
+        $seasonal = Category::factory()->create(['name' => 'Seasonal']);
+        $classics = Category::factory()->create(['name' => 'Classics']);
+
+        Drink::factory()->create([
+            'category_id' => $seasonal->id,
+            'name' => 'Orange Tonic',
+            'price' => 4.75,
+            'is_available' => true,
+        ]);
+        Drink::factory()->create([
+            'category_id' => $seasonal->id,
+            'name' => 'Cherry Soda',
+            'price' => 3.20,
+            'is_available' => true,
+        ]);
+        Drink::factory()->create([
+            'category_id' => $classics->id,
+            'name' => 'Espresso',
+            'price' => 2.80,
+            'is_available' => false,
+        ]);
+
+        $response = $this->postJson('/graphql', [
+            'query' => '
+                query FilteredDrinks($categoryId: ID!) {
+                    drinks(
+                        category_id: $categoryId
+                        search: "tonic"
+                        is_available: true
+                        min_price: 4
+                        sort_by: "price"
+                        sort_direction: "desc"
+                    ) {
+                        id
+                        name
+                        price
+                        category {
+                            name
+                        }
+                    }
+                }
+            ',
+            'variables' => [
+                'categoryId' => $seasonal->id,
+            ],
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJsonCount(1, 'data.drinks')
+            ->assertJsonPath('data.drinks.0.name', 'Orange Tonic')
+            ->assertJsonPath('data.drinks.0.category.name', 'Seasonal');
+    }
 }

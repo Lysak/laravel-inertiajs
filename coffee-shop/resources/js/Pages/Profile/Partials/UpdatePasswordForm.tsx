@@ -2,22 +2,28 @@ import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import PrimaryButton from '@/Components/PrimaryButton'
 import TextInput, { type TextInputHandle } from '@/Components/TextInput'
+import type { UpdatePasswordFormData } from '@/types/forms'
 import { Transition } from '@headlessui/react'
 import { useForm } from '@inertiajs/react'
-import { useRef } from 'react'
+import { useRef, type ChangeEvent, type SubmitEvent } from 'react'
 
-export default function UpdatePasswordForm({ className = '' }) {
+type UpdatePasswordFormProps = {
+    className?: string
+}
+
+export default function UpdatePasswordForm({ className = '' }: UpdatePasswordFormProps) {
     const passwordInput = useRef<TextInputHandle>(null)
     const currentPasswordInput = useRef<TextInputHandle>(null)
 
-    const { data, setData, errors, put, reset, processing, recentlySuccessful } = useForm({
-        current_password: '',
-        password: '',
-        password_confirmation: '',
-    })
+    const { data, setData, errors, put, reset, processing, recentlySuccessful } =
+        useForm<UpdatePasswordFormData>({
+            current_password: '',
+            password: '',
+            password_confirmation: '',
+        })
 
-    const updatePassword = (e) => {
-        e.preventDefault()
+    const updatePassword = (event: SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault()
 
         put(route('password.update'), {
             preserveScroll: true,
@@ -34,6 +40,18 @@ export default function UpdatePasswordForm({ className = '' }) {
                 }
             },
         })
+    }
+
+    const handleCurrentPasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setData('current_password', event.target.value)
+    }
+
+    const handlePasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setData('password', event.target.value)
+    }
+
+    const handlePasswordConfirmationChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setData('password_confirmation', event.target.value)
     }
 
     return (
@@ -54,7 +72,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                         id="current_password"
                         ref={currentPasswordInput}
                         value={data.current_password}
-                        onChange={(e) => setData('current_password', e.target.value)}
+                        onChange={handleCurrentPasswordChange}
                         type="password"
                         className="mt-1 block w-full"
                         autoComplete="current-password"
@@ -70,7 +88,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                         id="password"
                         ref={passwordInput}
                         value={data.password}
-                        onChange={(e) => setData('password', e.target.value)}
+                        onChange={handlePasswordChange}
                         type="password"
                         className="mt-1 block w-full"
                         autoComplete="new-password"
@@ -85,7 +103,7 @@ export default function UpdatePasswordForm({ className = '' }) {
                     <TextInput
                         id="password_confirmation"
                         value={data.password_confirmation}
-                        onChange={(e) => setData('password_confirmation', e.target.value)}
+                        onChange={handlePasswordConfirmationChange}
                         type="password"
                         className="mt-1 block w-full"
                         autoComplete="new-password"

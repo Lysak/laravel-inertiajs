@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\GraphQL\Inputs;
 
-use Rebing\GraphQL\Support\Facades\GraphQL;
+use App\GraphQL\Concerns\ResolvesGraphQLTypes;
 use GraphQL\Type\Definition\Type;
 use Rebing\GraphQL\Support\InputType;
 
 class CreateOrderInput extends InputType
 {
+    use ResolvesGraphQLTypes;
+
     protected $attributes = [
         'name' => 'CreateOrderInput',
         'description' => 'Input payload for creating order',
@@ -23,7 +25,9 @@ class CreateOrderInput extends InputType
                 'rules' => ['nullable', 'exists:users,id'],
             ],
             'items' => [
-                'type' => Type::nonNull(Type::listOf(Type::nonNull(GraphQL::type('CreateOrderItemInput')))),
+                'type' => Type::nonNull(
+                    Type::listOf(Type::nonNull($this->nullableType('CreateOrderItemInput'))),
+                ),
                 'rules' => ['required', 'array', 'min:1'],
             ],
         ];

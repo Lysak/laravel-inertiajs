@@ -3,9 +3,10 @@ import PageSection from '@/Components/PageSection'
 import StatCard from '@/Components/StatCard'
 import SurfaceCard from '@/Components/SurfaceCard'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+import type { DashboardProps } from '@/types/page-props'
 import { Head, Link } from '@inertiajs/react'
 
-export default function Dashboard({ stats, recentOrders, graphqlEndpoint }) {
+export default function Dashboard({ stats, recentOrders, graphqlEndpoint }: DashboardProps) {
     return (
         <AuthenticatedLayout
             header={

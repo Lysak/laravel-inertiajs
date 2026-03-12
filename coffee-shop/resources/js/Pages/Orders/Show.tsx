@@ -2,9 +2,10 @@ import DataTable from '@/Components/DataTable'
 import PageSection from '@/Components/PageSection'
 import SurfaceCard from '@/Components/SurfaceCard'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+import type { OrderShowProps } from '@/types/page-props'
 import { Head, Link } from '@inertiajs/react'
 
-export default function OrderShow({ order }) {
+export default function OrderShow({ order }: OrderShowProps) {
     return (
         <AuthenticatedLayout
             header={

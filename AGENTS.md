@@ -30,7 +30,21 @@ Run commands from `coffee-shop/` unless noted.
 - React/Inertia: do not duplicate React UI code across pages or components. Put cross-page UI in `resources/js/Components` and page-scoped building blocks in a nearby `Components` or `Partials` folder.
 - Use descriptive names by responsibility: `OrderService`, `CreateOrderMutation`, `OrdersQuery`, `Orders/Show.tsx`.
 - Keep GraphQL types/queries/mutations in their dedicated folders.
+- For GraphQL named type lookups used inside wrappers like `Type::nonNull(...)`, do not pass `GraphQL::type(...)` directly. Use a local typed helper that narrows the result to `Type&NullableType` (for example `nullableType('CreateDrinkInput')`) so static analysis stays correct.
 - Always use dependency injection for services/classes; avoid `app(...)` service-locator calls in application code.
+
+## Backend Architecture Rules
+- For Inertia pages, keep controllers thin: authorize the request, call a dedicated application class, and return `Inertia::render(...)`. Do not place non-trivial Eloquent query building or business rules directly in controllers.
+- Do not call GraphQL from Laravel web controllers or call controllers from GraphQL resolvers. Controllers, GraphQL resolvers, and REST endpoints are separate delivery layers over shared application logic.
+- Prefer use-case classes over repository-per-model. Create a dedicated class per scenario instead of growing a large `OrderRepository`/`DrinkRepository`.
+- Put read use cases in `coffee-shop/app/Queries/<Domain>/...` and write/state-changing use cases in `coffee-shop/app/Actions/<Domain>/...` when the logic is more than trivial or must be reused across delivery layers.
+- Do not create `Queries`/`Actions` folders for every model up front. Add them when a real use case appears.
+- Reuse by scenario, not by model name alone. If web, mobile, and GraphQL need the same data retrieval rules, share one query class. If they need different filters, pagination, or relation graphs, create separate use-case classes.
+- Split shared data fetching from presentation shaping. Shared query classes should return domain models or raw result sets that multiple delivery layers can reuse; web-specific mapping for Inertia props should live in a separate presenter/query class on top of the shared fetcher.
+- For presenter/query result contracts, prefer explicit DTO/value objects over large associative array shapes. Use array shapes only for very small, local, single-use payloads.
+- Keep reusable query-building primitives close to the model only when they are small and generic, such as relationships, casts, and simple local scopes. Do not move screen-specific or endpoint-specific queries into the model.
+- Use services/actions for business operations such as creating, paying, or cancelling orders. Do not duplicate business rules between controllers, GraphQL mutations, and future mobile/API flows.
+- Prefer native PHP type hints first. Use PHPDoc for collection generics and array shapes that PHP cannot express natively. Do not replace PHPDoc typing with PHP attributes; attributes are only for framework/runtime metadata.
 
 ## Testing Guidelines
 - Framework: PHPUnit (`php artisan test` / `composer test`).

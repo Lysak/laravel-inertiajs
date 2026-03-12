@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\GraphQL\Mutations;
 
+use App\GraphQL\Concerns\ResolvesGraphQLTypes;
 use App\Models\User;
 use App\Services\OrderService;
 use GraphQL\Type\Definition\ResolveInfo;
@@ -15,6 +16,8 @@ use Rebing\GraphQL\Support\Mutation;
 
 class CreateOrderMutation extends Mutation
 {
+    use ResolvesGraphQLTypes;
+
     protected $attributes = [
         'name' => 'createOrder',
         'description' => 'Create a customer order',
@@ -30,7 +33,7 @@ class CreateOrderMutation extends Mutation
         return [
             'input' => [
                 'name' => 'input',
-                'type' => Type::nonNull(GraphQL::type('CreateOrderInput')),
+                'type' => Type::nonNull($this->nullableType('CreateOrderInput')),
             ],
         ];
     }

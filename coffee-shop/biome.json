@@ -22,6 +22,17 @@
         "noUselessFragments": "off"
       },
       "style": {
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "paths": {
+              "react": {
+                "importNames": ["FormEvent", "FormEventHandler"],
+                "message": "React 19 deprecated these aliases. Use SubmitEvent/SubmitEventHandler, ChangeEvent/ChangeEventHandler, InputEvent/InputEventHandler, or SyntheticEvent/EventHandler depending on the DOM event."
+              }
+            }
+          }
+        },
         "useTemplate": "off"
       }
     }

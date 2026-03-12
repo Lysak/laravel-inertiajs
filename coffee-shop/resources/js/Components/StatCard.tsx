@@ -1,6 +1,12 @@
+import type { ReactNode } from 'react'
 import SurfaceCard from '@/Components/SurfaceCard'
 
-export default function StatCard({ label, value }) {
+type StatCardProps = {
+    label: ReactNode
+    value: ReactNode
+}
+
+export default function StatCard({ label, value }: StatCardProps) {
     return (
         <SurfaceCard className="p-6">
             <p className="text-sm text-gray-500">{label}</p>

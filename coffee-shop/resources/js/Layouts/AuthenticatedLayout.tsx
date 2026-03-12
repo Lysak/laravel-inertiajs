@@ -3,9 +3,14 @@ import Dropdown from '@/Components/Dropdown'
 import NavLink from '@/Components/NavLink'
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink'
 import { Link, usePage } from '@inertiajs/react'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 
-export default function AuthenticatedLayout({ header, children }) {
+type AuthenticatedLayoutProps = {
+    header?: ReactNode
+    children: ReactNode
+}
+
+export default function AuthenticatedLayout({ header, children }: AuthenticatedLayoutProps) {
     const user = usePage<AppPageProps>().props.auth.user
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false)

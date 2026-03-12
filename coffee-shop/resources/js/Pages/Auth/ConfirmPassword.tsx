@@ -3,19 +3,25 @@ import InputLabel from '@/Components/InputLabel'
 import PrimaryButton from '@/Components/PrimaryButton'
 import TextInput from '@/Components/TextInput'
 import GuestLayout from '@/Layouts/GuestLayout'
+import type { ConfirmPasswordFormData } from '@/types/forms'
 import { Head, useForm } from '@inertiajs/react'
+import type { ChangeEvent, SubmitEvent } from 'react'
 
 export default function ConfirmPassword() {
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm<ConfirmPasswordFormData>({
         password: '',
     })
 
-    const submit = (e) => {
-        e.preventDefault()
+    const submit = (event: SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault()
 
         post(route('password.confirm'), {
             onFinish: () => reset('password'),
         })
+    }
+
+    const handlePasswordChange = (event: ChangeEvent<HTMLInputElement>) => {
+        setData('password', event.target.value)
     }
 
     return (
@@ -38,7 +44,7 @@ export default function ConfirmPassword() {
                         value={data.password}
                         className="mt-1 block w-full"
                         isFocused={true}
-                        onChange={(e) => setData('password', e.target.value)}
+                        onChange={handlePasswordChange}
                     />
 
                     <InputError message={errors.password} className="mt-2" />
