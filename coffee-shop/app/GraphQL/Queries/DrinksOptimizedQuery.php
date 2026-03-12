@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\GraphQL\Queries;
 
+use App\GraphQL\Concerns\ResolvesGraphQLTypes;
 use App\Models\Drink;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
-use Rebing\GraphQL\Support\Facades\GraphQL;
 use Rebing\GraphQL\Support\Query;
 
 class DrinksOptimizedQuery extends Query
 {
+    use ResolvesGraphQLTypes;
+
     protected $attributes = [
         'name' => 'drinksOptimized',
         'description' => 'Catalog drinks with eager loaded category',
@@ -19,7 +21,7 @@ class DrinksOptimizedQuery extends Query
 
     public function type(): Type
     {
-        return Type::listOf(GraphQL::type('Drink'));
+        return Type::listOf($this->nullableType('Drink'));
     }
 
     public function args(): array

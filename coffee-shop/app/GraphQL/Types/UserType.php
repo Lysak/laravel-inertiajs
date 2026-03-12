@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\GraphQL\Types;
 
+use App\GraphQL\Concerns\ResolvesGraphQLTypes;
 use GraphQL\Type\Definition\Type;
-use Rebing\GraphQL\Support\Facades\GraphQL;
 use Rebing\GraphQL\Support\Type as GraphQLType;
 
 class UserType extends GraphQLType
 {
+    use ResolvesGraphQLTypes;
+
     protected $attributes = [
         'name' => 'User',
         'description' => 'Application user',
@@ -31,7 +33,7 @@ class UserType extends GraphQLType
                 'type' => Type::nonNull(Type::string()),
             ],
             'orders' => [
-                'type' => Type::listOf(GraphQL::type('Order')),
+                'type' => Type::listOf($this->nullableType('Order')),
             ],
         ];
     }

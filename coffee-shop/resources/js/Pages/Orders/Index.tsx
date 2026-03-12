@@ -1,11 +1,30 @@
+import { useQuery } from '@apollo/client/react'
+import { Head, Link } from '@inertiajs/react'
 import DataTable from '@/Components/DataTable'
 import PageSection from '@/Components/PageSection'
 import SurfaceCard from '@/Components/SurfaceCard'
+import { ORDERS_QUERY } from '@/graphql/queries/orders'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
-import type { OrdersIndexProps } from '@/types/page-props'
-import { Head, Link } from '@inertiajs/react'
+import MarkOrderPaidButton from '@/Pages/Orders/Partials/MarkOrderPaidButton'
+import type { OrderListItem } from '@/types/page-props'
 
-export default function OrdersIndex({ orders }: OrdersIndexProps) {
+const ORDERS_LIMIT = 25
+
+export default function OrdersIndex() {
+    const { data, error, loading } = useQuery(ORDERS_QUERY, {
+        variables: { limit: ORDERS_LIMIT },
+    })
+
+    const orders: OrderListItem[] =
+        data?.orders.map((order) => ({
+            id: Number(order.id),
+            customer_name: order.customer_name,
+            status: order.status,
+            items_count: order.items_count,
+            total: order.total,
+            created_at: order.created_at,
+        })) ?? []
+
     const inProgressOrders = orders.filter((order) => order.status === 'in_progress')
     const paidOrders = orders.filter((order) => order.status === 'paid')
     const completedOrders = orders.filter((order) => order.status === 'completed')
@@ -34,6 +53,12 @@ export default function OrdersIndex({ orders }: OrdersIndexProps) {
             <Head title="Orders" />
 
             <PageSection className="space-y-6">
+                {error ? (
+                    <SurfaceCard className="p-6">
+                        <p className="text-sm text-red-600">Failed to load orders.</p>
+                    </SurfaceCard>
+                ) : null}
+
                 <div className="grid gap-4 md:grid-cols-3">
                     <SurfaceCard className="rounded-[1.75rem] border border-amber-200 bg-amber-50 p-5 shadow-none">
                         <p className="text-xs uppercase tracking-[0.24em] text-amber-700">
@@ -85,9 +110,14 @@ export default function OrdersIndex({ orders }: OrdersIndexProps) {
 
                     <DataTable>
                         <DataTable.Head
-                            columns={['Order', 'Customer', 'Status', 'Items', 'Total', 'Created']}
+                            columns={['Order', 'Customer', 'Status', 'Items', 'Total', 'Created', 'Action']}
                         />
                         <DataTable.Body>
+                            {loading && orders.length === 0 ? (
+                                <DataTable.Row>
+                                    <DataTable.Cell colSpan={7}>Loading orders...</DataTable.Cell>
+                                </DataTable.Row>
+                            ) : null}
                             {orders.map((order) => (
                                 <DataTable.Row key={order.id}>
                                     <DataTable.Cell>
@@ -112,9 +142,21 @@ export default function OrdersIndex({ orders }: OrdersIndexProps) {
                                     <DataTable.Cell emphasis>
                                         ${order.total.toFixed(2)}
                                     </DataTable.Cell>
-                                    <DataTable.Cell>{order.created_at}</DataTable.Cell>
+                                    <DataTable.Cell>{order.created_at ?? '—'}</DataTable.Cell>
+                                    <DataTable.Cell>
+                                        <MarkOrderPaidButton
+                                            orderId={order.id}
+                                            status={order.status}
+                                            className="inline-flex rounded-full border border-emerald-300 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700 transition hover:border-emerald-400 hover:text-emerald-900 disabled:cursor-not-allowed disabled:opacity-60"
+                                        />
+                                    </DataTable.Cell>
                                 </DataTable.Row>
                             ))}
+                            {!loading && orders.length === 0 ? (
+                                <DataTable.Row>
+                                    <DataTable.Cell colSpan={7}>No orders yet.</DataTable.Cell>
+                                </DataTable.Row>
+                            ) : null}
                         </DataTable.Body>
                     </DataTable>
                 </SurfaceCard>

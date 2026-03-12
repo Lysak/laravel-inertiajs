@@ -1,0 +1,141 @@
+"Drink category"
+type Category {
+  id: ID!
+  name: String!
+  drinks: [Drink!]!
+}
+
+"Dashboard counters and revenue totals"
+type DashboardStats {
+  orders: Int!
+  drinks: Int!
+  customers: Int!
+  revenue: Float!
+}
+
+"Drink item from catalog"
+type Drink {
+  id: ID!
+  name: String!
+  price: Float!
+  is_available: Boolean!
+  category: Category
+  stats: DrinkStats
+  total_sold: Int!
+}
+
+"Anonymous customer fallback used by create order flow"
+type OrderCreateCustomer {
+  id: ID!
+  name: String!
+}
+
+"Create order screen data"
+type OrderCreateData {
+  anonymous_customer: OrderCreateCustomer!
+  categories: [Category!]!
+}
+
+"Customer order"
+type Order {
+  id: ID!
+  status: String!
+  customer_name: String!
+  customer_email: String
+  created_at: String!
+  updated_at: String!
+  total: Float!
+  user: User
+  items: [OrderItem!]!
+  items_count: Int!
+}
+
+"Single line item within order"
+type OrderItem {
+  id: ID!
+  quantity: Int!
+  unit_price: Float!
+  drink_name: String!
+  line_total: Float!
+  drink: Drink
+}
+
+"Application user"
+type User {
+  id: ID!
+  name: String!
+  email: String!
+  role: String!
+  orders: [Order]
+}
+
+"Aggregated sales stats for drink"
+type DrinkStats {
+  total_sold: Int!
+  revenue: Float!
+}
+
+"Input payload for creating order"
+input CreateOrderInput {
+  user_id: ID
+  customer_name: String
+  items: [CreateOrderItemInput!]!
+}
+
+"Single item for creating order"
+input CreateOrderItemInput {
+  drink_id: ID!
+  quantity: Int!
+}
+
+"Input payload for creating drink"
+input CreateDrinkInput {
+  category_id: ID!
+  name: String!
+  price: Float!
+  is_available: Boolean!
+}
+
+type Query {
+  "Catalog categories ordered by name"
+  categories: [Category!]!
+
+  "Dashboard aggregate statistics"
+  dashboardStats: DashboardStats
+
+  "Catalog drinks with eager loaded category"
+  drinks(limit: Int, search: String, category_id: ID, is_available: Boolean, min_price: Float, max_price: Float, sort_by: String = "name", sort_direction: String = "asc", with_stats: Boolean = false): [Drink!]!
+
+  "Catalog drinks with eager loaded category"
+  drinksOptimized(limit: Int = 25): [Drink]
+
+  "Data needed to build the create order screen"
+  orderCreateData: OrderCreateData!
+
+  "Single order with nested details"
+  order(id: ID!): Order!
+
+  "Orders query with eager loaded nested relations"
+  orders(limit: Int = 25): [Order!]!
+
+  "Orders query with eager loading to avoid N+1"
+  ordersOptimized(limit: Int = 25): [Order]
+
+  "Drinks with eager loaded category and batched stats"
+  drinksWithStats(limit: Int = 25): [Drink]
+
+  "Drinks with eager loaded category and batched stats"
+  drinksWithStatsOptimized(limit: Int = 25): [Drink]
+}
+
+type Mutation {
+  "Create a customer order"
+  createOrder(input: CreateOrderInput!): Order
+
+  "Mark order as paid"
+  markOrderPaid(order_id: ID!): Order
+
+  "Create a new catalog drink"
+  createDrink(input: CreateDrinkInput!): Drink
+}
+

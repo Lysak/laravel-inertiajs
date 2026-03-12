@@ -57,8 +57,12 @@ return [
     'schemas' => [
         'default' => [
             'query' => [
+                App\GraphQL\Queries\CategoriesQuery::class,
+                App\GraphQL\Queries\DashboardStatsQuery::class,
                 App\GraphQL\Queries\DrinksQuery::class,
                 App\GraphQL\Queries\DrinksOptimizedQuery::class,
+                App\GraphQL\Queries\OrderCreateDataQuery::class,
+                App\GraphQL\Queries\OrderQuery::class,
                 App\GraphQL\Queries\OrdersQuery::class,
                 App\GraphQL\Queries\OrdersOptimizedQuery::class,
                 App\GraphQL\Queries\DrinksWithStatsQuery::class,
@@ -105,7 +109,10 @@ return [
     //
     'types' => [
         'Category' => App\GraphQL\Types\CategoryType::class,
+        'DashboardStats' => App\GraphQL\Types\DashboardStatsType::class,
         'Drink' => App\GraphQL\Types\DrinkType::class,
+        'OrderCreateCustomer' => App\GraphQL\Types\OrderCreateCustomerType::class,
+        'OrderCreateData' => App\GraphQL\Types\OrderCreateDataType::class,
         'Order' => App\GraphQL\Types\OrderType::class,
         'OrderItem' => App\GraphQL\Types\OrderItemType::class,
         'User' => App\GraphQL\Types\UserType::class,

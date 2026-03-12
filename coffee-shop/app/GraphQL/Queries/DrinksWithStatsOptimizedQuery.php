@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\GraphQL\Queries;
 
+use App\GraphQL\Concerns\ResolvesGraphQLTypes;
 use App\Models\Drink;
 use App\Services\StatsService;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
-use Rebing\GraphQL\Support\Facades\GraphQL;
 use Rebing\GraphQL\Support\Query;
 
 class DrinksWithStatsOptimizedQuery extends Query
 {
+    use ResolvesGraphQLTypes;
+
     public function __construct(private readonly StatsService $statsService) {}
 
     protected $attributes = [
@@ -22,7 +24,7 @@ class DrinksWithStatsOptimizedQuery extends Query
 
     public function type(): Type
     {
-        return Type::listOf(GraphQL::type('Drink'));
+        return Type::listOf($this->nullableType('Drink'));
     }
 
     public function args(): array

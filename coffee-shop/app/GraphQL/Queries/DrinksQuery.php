@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace App\GraphQL\Queries;
 
+use App\GraphQL\Concerns\ResolvesGraphQLTypes;
 use App\Models\Drink;
 use App\Services\StatsService;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use Illuminate\Database\Eloquent\Builder;
-use Rebing\GraphQL\Support\Facades\GraphQL;
 use Rebing\GraphQL\Support\Query;
 
 class DrinksQuery extends Query
 {
+    use ResolvesGraphQLTypes;
+
     protected $attributes = [
         'name' => 'drinks',
         'description' => 'Catalog drinks with eager loaded category',
@@ -25,7 +27,7 @@ class DrinksQuery extends Query
 
     public function type(): Type
     {
-        return Type::listOf(GraphQL::type('Drink'));
+        return Type::nonNull(Type::listOf(Type::nonNull($this->nullableType('Drink'))));
     }
 
     public function args(): array
@@ -33,7 +35,6 @@ class DrinksQuery extends Query
         return [
             'limit' => [
                 'type' => Type::int(),
-                'defaultValue' => 25,
             ],
             'search' => [
                 'type' => Type::string(),
@@ -98,7 +99,10 @@ class DrinksQuery extends Query
 
         $drinks = $query
             ->orderBy($sortBy, $sortDirection)
-            ->limit((int) $args['limit'])
+            ->when(
+                isset($args['limit']),
+                fn (Builder $builder) => $builder->limit((int) $args['limit'])
+            )
             ->get();
 
         if (($args['with_stats'] ?? false) !== true) {

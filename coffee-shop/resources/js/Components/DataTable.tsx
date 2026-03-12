@@ -16,6 +16,7 @@ type RowProps = {
 type CellProps = {
     children: ReactNode
     className?: string
+    colSpan?: number
     emphasis?: boolean
 }
 
@@ -63,10 +64,14 @@ function HeaderCell({ children }: RowProps) {
     )
 }
 
-function Cell({ children, className = '', emphasis = false }: CellProps) {
+function Cell({ children, className = '', colSpan, emphasis = false }: CellProps) {
     const textColor = emphasis ? 'font-medium text-gray-900' : 'text-gray-700'
 
-    return <td className={`px-3 py-2 text-sm ${textColor} ${className}`}>{children}</td>
+    return (
+        <td className={`px-3 py-2 text-sm ${textColor} ${className}`} colSpan={colSpan}>
+            {children}
+        </td>
+    )
 }
 
 const DataTable: DataTableComponent = Object.assign(DataTableRoot, {

@@ -13,6 +13,8 @@ use Rebing\GraphQL\Support\Mutation;
 
 class MarkOrderPaidMutation extends Mutation
 {
+    public function __construct(private readonly OrderService $orderService) {}
+
     protected $attributes = [
         'name' => 'markOrderPaid',
         'description' => 'Mark order as paid',
@@ -38,6 +40,6 @@ class MarkOrderPaidMutation extends Mutation
     {
         $order = Order::query()->findOrFail($args['order_id']);
 
-        return app(OrderService::class)->markPaid($order);
+        return $this->orderService->markPaid($order);
     }
 }

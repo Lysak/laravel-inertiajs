@@ -1,0 +1,15 @@
+query DashboardQuery($limit: Int!) {
+    dashboardStats {
+        orders
+        drinks
+        customers
+        revenue
+    }
+    orders(limit: $limit) {
+        id
+        customer_name
+        status
+        items_count
+        total
+    }
+}

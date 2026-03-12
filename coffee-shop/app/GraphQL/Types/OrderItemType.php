@@ -28,6 +28,10 @@ class OrderItemType extends GraphQLType
             'unit_price' => [
                 'type' => Type::nonNull(Type::float()),
             ],
+            'drink_name' => [
+                'type' => Type::nonNull(Type::string()),
+                'resolve' => static fn (OrderItem $item): string => $item->drink?->name ?? 'Unknown drink',
+            ],
             'line_total' => [
                 'type' => Type::nonNull(Type::float()),
                 'resolve' => static fn (OrderItem $item): float => $item->line_total,

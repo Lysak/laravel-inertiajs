@@ -1,11 +1,23 @@
+import { useMutation, useQuery } from '@apollo/client/react'
 import InputError from '@/Components/InputError'
 import PageSection from '@/Components/PageSection'
+import {
+    getGraphQLSubmissionMessage,
+    getGraphQLValidationMessages,
+} from '@/graphql/errors'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
+import { DASHBOARD_QUERY } from '@/graphql/queries/dashboard'
+import {
+    CREATE_ORDER_MUTATION,
+    ORDER_CREATE_DATA_QUERY,
+    ORDERS_QUERY,
+} from '@/graphql/queries/orders'
 import OrderDrinkPicker from '@/Pages/Orders/Partials/OrderDrinkPicker'
 import OrderSummaryPanel from '@/Pages/Orders/Partials/OrderSummaryPanel'
-import type { OrderCreateProps } from '@/types/page-props'
-import { Head, Link, useForm } from '@inertiajs/react'
+import type { OrderCreateCategory } from '@/types/page-props'
+import { Head, Link, router } from '@inertiajs/react'
 import type { ComponentPropsWithoutRef } from 'react'
+import { useState } from 'react'
 
 type CreateOrderFormData = {
     customer_name: string
@@ -15,16 +27,101 @@ type CreateOrderFormData = {
     }>
 }
 
-export default function OrderCreate({ anonymous_customer, categories }: OrderCreateProps) {
-    const drinks = categories.flatMap((category) => category.drinks)
+type FormErrors = {
+    customer_name?: string
+    items?: string
+    submit?: string
+}
 
-    const { data, setData, post, processing, errors } = useForm<CreateOrderFormData>({
+function extractFormErrors(error: unknown): FormErrors {
+    const validation = getGraphQLValidationMessages(error)
+
+    return {
+        customer_name: validation?.customer_name?.[0],
+        items: validation?.items?.[0] ?? validation?.['items.0.quantity']?.[0],
+        submit: getGraphQLSubmissionMessage(error),
+    }
+}
+
+export default function OrderCreate() {
+    const [formData, setFormData] = useState<CreateOrderFormData>({
         customer_name: '',
         items: [],
     })
+    const [errors, setErrors] = useState<FormErrors>({})
+
+    const { data, error, loading } = useQuery(ORDER_CREATE_DATA_QUERY)
+    const [createOrder, { loading: processing }] = useMutation(CREATE_ORDER_MUTATION, {
+        update(cache, { data: mutationData }) {
+            const createdOrder = mutationData?.createOrder
+
+            if (!createdOrder) {
+                return
+            }
+
+            cache.updateQuery(
+                {
+                    query: ORDERS_QUERY,
+                    variables: { limit: 25 },
+                },
+                (existing) => {
+                    if (!existing) {
+                        return existing
+                    }
+
+                    return {
+                        orders: [
+                            createdOrder,
+                            ...existing.orders.filter((order) => order.id !== createdOrder.id),
+                        ].slice(0, 25),
+                    }
+                },
+            )
+
+            cache.updateQuery(
+                {
+                    query: DASHBOARD_QUERY,
+                    variables: { limit: 5 },
+                },
+                (existing) => {
+                    if (!existing) {
+                        return existing
+                    }
+
+                    return {
+                        ...existing,
+                        orders: [
+                            createdOrder,
+                            ...existing.orders.filter((order) => order.id !== createdOrder.id),
+                        ].slice(0, 5),
+                    }
+                },
+            )
+        },
+    })
+
+    const anonymousCustomer = data
+        ? {
+              id: Number(data.orderCreateData.anonymous_customer.id),
+              name: data.orderCreateData.anonymous_customer.name,
+          }
+        : null
+
+    const categories: OrderCreateCategory[] =
+        data?.orderCreateData.categories.map((category) => ({
+            id: Number(category.id),
+            name: category.name,
+            drinks: category.drinks.map((drink) => ({
+                id: Number(drink.id),
+                name: drink.name,
+                price: drink.price,
+            })),
+        })) ?? []
+
+    const drinks = categories.flatMap((category) => category.drinks)
 
     const quantities = Object.fromEntries(
-        data.items.map((item) => [item.drink_id, item.quantity]),
+        formData.items.map((item) => [item.drink_id, item.quantity]),
     ) as Record<number, number>
 
     const summaryLines = drinks
@@ -40,11 +137,19 @@ export default function OrderCreate({ anonymous_customer, categories }: OrderCre
     const totalPrice = summaryLines.reduce((sum, line) => sum + line.quantity * line.unitPrice, 0)
 
     const setQuantity = (drinkId: number, nextQuantity: number) => {
-        const nextItems = data.items
+        const nextItems = formData.items
             .filter((item) => item.drink_id !== drinkId)
             .concat(nextQuantity > 0 ? [{ drink_id: drinkId, quantity: nextQuantity }] : [])
 
-        setData('items', nextItems)
+        setFormData((current) => ({
+            ...current,
+            items: nextItems,
+        }))
+        setErrors((current) => ({
+            ...current,
+            items: undefined,
+            submit: undefined,
+        }))
     }
 
     const incrementDrink = (drinkId: number) => {
@@ -55,13 +160,44 @@ export default function OrderCreate({ anonymous_customer, categories }: OrderCre
         setQuantity(drinkId, Math.max(0, (quantities[drinkId] ?? 0) - 1))
     }
 
-    const submit: NonNullable<ComponentPropsWithoutRef<'form'>['onSubmit']> = (event) => {
+    const submit: NonNullable<ComponentPropsWithoutRef<'form'>['onSubmit']> = async (event) => {
         event.preventDefault()
-        post(route('orders.store'))
+
+        if (!anonymousCustomer) {
+            return
+        }
+
+        setErrors({})
+
+        try {
+            const response = await createOrder({
+                variables: {
+                    input: {
+                        user_id: anonymousCustomer.id,
+                        customer_name:
+                            formData.customer_name.trim() === '' ? undefined : formData.customer_name.trim(),
+                        items: formData.items,
+                    },
+                },
+            })
+
+            const orderId = response.data?.createOrder?.id
+
+            if (orderId) {
+                router.visit(route('orders.show', Number(orderId)))
+            }
+        } catch (mutationError) {
+            setErrors((current) => ({
+                ...current,
+                ...extractFormErrors(mutationError),
+            }))
+        }
     }
 
     const activeCustomerName =
-        data.customer_name.trim() === '' ? anonymous_customer.name : data.customer_name.trim()
+        formData.customer_name.trim() === ''
+            ? (anonymousCustomer?.name ?? 'Anonymous Guest')
+            : formData.customer_name.trim()
 
     return (
         <AuthenticatedLayout
@@ -87,6 +223,10 @@ export default function OrderCreate({ anonymous_customer, categories }: OrderCre
             <Head title="Create order" />
 
             <PageSection className="space-y-6">
+                {error ? (
+                    <InputError message="Failed to load order builder data." />
+                ) : null}
+
                 <form onSubmit={submit} className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
                     <div className="space-y-6">
                         <section className="rounded-[2rem] border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-stone-50 p-6 shadow-[0_20px_60px_rgba(120,53,15,0.08)]">
@@ -99,7 +239,7 @@ export default function OrderCreate({ anonymous_customer, categories }: OrderCre
                                         Keep it anonymous or write a name fast
                                     </h3>
                                     <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-                                        By default every new order belongs to {anonymous_customer.name}. If the barista has a few seconds, they can type the guest name and it will be saved on the order.
+                                        By default every new order belongs to {activeCustomerName === formData.customer_name.trim() && formData.customer_name.trim() !== '' ? 'the typed guest name' : anonymousCustomer?.name ?? 'Anonymous Guest'}. If the barista has a few seconds, they can type the guest name and it will be saved on the order.
                                     </p>
                                 </div>
 
@@ -108,7 +248,7 @@ export default function OrderCreate({ anonymous_customer, categories }: OrderCre
                                         Default fallback
                                     </p>
                                     <p className="mt-3 text-lg font-semibold">
-                                        {anonymous_customer.name}
+                                        {anonymousCustomer?.name ?? 'Loading...'}
                                     </p>
                                     <p className="mt-2 text-sm text-stone-300">
                                         Used automatically when no card is selected.
@@ -126,8 +266,18 @@ export default function OrderCreate({ anonymous_customer, categories }: OrderCre
                                     </label>
                                     <input
                                         id="customer_name"
-                                        value={data.customer_name}
-                                        onChange={(event) => setData('customer_name', event.target.value)}
+                                        value={formData.customer_name}
+                                        onChange={(event) => {
+                                            setFormData((current) => ({
+                                                ...current,
+                                                customer_name: event.target.value,
+                                            }))
+                                            setErrors((current) => ({
+                                                ...current,
+                                                customer_name: undefined,
+                                                submit: undefined,
+                                            }))
+                                        }}
                                         placeholder="Type a name only if needed"
                                         className="mt-2 min-h-12 w-full rounded-2xl border border-stone-300 bg-white px-4 text-sm text-stone-900 shadow-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
                                     />
@@ -136,7 +286,17 @@ export default function OrderCreate({ anonymous_customer, categories }: OrderCre
 
                                 <button
                                     type="button"
-                                    onClick={() => setData('customer_name', '')}
+                                    onClick={() => {
+                                        setFormData((current) => ({
+                                            ...current,
+                                            customer_name: '',
+                                        }))
+                                        setErrors((current) => ({
+                                            ...current,
+                                            customer_name: undefined,
+                                            submit: undefined,
+                                        }))
+                                    }}
                                     className="min-h-12 rounded-2xl border border-stone-300 px-5 text-sm font-medium text-stone-700 transition hover:border-stone-400 hover:text-stone-900"
                                 >
                                     Clear name
@@ -151,7 +311,7 @@ export default function OrderCreate({ anonymous_customer, categories }: OrderCre
                                     {activeCustomerName}
                                 </p>
                                 <p className="mt-1 text-sm text-stone-500">
-                                    {data.customer_name.trim() === ''
+                                    {formData.customer_name.trim() === ''
                                         ? 'Walk-in guest without a recorded name.'
                                         : 'Saved as a quick note on this order.'}
                                 </p>
@@ -169,7 +329,7 @@ export default function OrderCreate({ anonymous_customer, categories }: OrderCre
                                     </h3>
                                 </div>
                                 <div className="rounded-full bg-white px-4 py-2 text-sm text-stone-500 shadow-sm">
-                                    {drinks.length} available drinks
+                                    {loading ? 'Loading menu...' : `${drinks.length} available drinks`}
                                 </div>
                             </div>
 
@@ -181,6 +341,7 @@ export default function OrderCreate({ anonymous_customer, categories }: OrderCre
                             />
 
                             <InputError className="mt-4" message={errors.items} />
+                            <InputError className="mt-2" message={errors.submit} />
                         </section>
                     </div>
 

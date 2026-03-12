@@ -1,35 +1,10 @@
-export type DashboardStats = {
-    orders: number
-    drinks: number
-    customers: number
-    revenue: number
-}
-
-export type DashboardOrder = {
-    id: number
-    customer_name: string
-    status: string
-    items_count: number
-    total: number
-}
-
-export type DashboardProps = {
-    stats: DashboardStats
-    recentOrders: DashboardOrder[]
-    graphqlEndpoint: string
-}
-
 export type OrderListItem = {
     id: number
     customer_name: string
     status: string
     items_count: number
     total: number
-    created_at: string
-}
-
-export type OrdersIndexProps = {
-    orders: OrderListItem[]
+    created_at: string | null
 }
 
 export type OrderCreateDrink = {
@@ -44,14 +19,6 @@ export type OrderCreateCategory = {
     drinks: OrderCreateDrink[]
 }
 
-export type OrderCreateProps = {
-    anonymous_customer: {
-        id: number
-        name: string
-    }
-    categories: OrderCreateCategory[]
-}
-
 export type OrderItem = {
     id: number
     drink_name: string
@@ -63,14 +30,14 @@ export type OrderItem = {
 export type OrderDetails = {
     id: number
     customer_name: string
-    customer_email: string
+    customer_email: string | null
     status: string
     total: number
     items: OrderItem[]
 }
 
-export type OrderShowProps = {
-    order: OrderDetails
+export type OrderShowPageProps = {
+    orderId: number
 }
 
 export type ProfileEditProps = {
@@ -82,28 +49,4 @@ export type UpdateProfileInformationFormProps = {
     mustVerifyEmail: boolean
     status?: string
     className?: string
-}
-
-export type DrinkRow = {
-    id: number
-    name: string
-    category: string | null
-    price: number
-    is_available: boolean
-    total_sold: number
-    revenue: number
-}
-
-export type DrinkCategory = {
-    id: number
-    name: string
-}
-
-export type DrinksIndexProps = {
-    drinks: DrinkRow[]
-    categories: DrinkCategory[]
-}
-
-export type CreateDrinkFormProps = {
-    categories: DrinkCategory[]
 }

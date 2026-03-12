@@ -1,0 +1,33 @@
+query DrinksIndexQuery {
+    categories {
+        id
+        name
+    }
+    drinks(with_stats: true) {
+        id
+        name
+        price
+        is_available
+        category {
+            id
+            name
+        }
+        stats {
+            total_sold
+            revenue
+        }
+    }
+}
+
+mutation CreateDrinkMutation($input: CreateDrinkInput!) {
+    createDrink(input: $input) {
+        id
+        name
+        price
+        is_available
+        category {
+            id
+            name
+        }
+    }
+}

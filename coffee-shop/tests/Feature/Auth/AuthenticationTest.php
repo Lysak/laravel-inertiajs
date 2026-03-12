@@ -4,6 +4,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
@@ -28,6 +29,30 @@ class AuthenticationTest extends TestCase
 
         $this->assertAuthenticated();
         $response->assertRedirect(route('dashboard', absolute: false));
+    }
+
+    public function test_login_regenerates_session_and_csrf_token(): void
+    {
+        $this->withMiddleware(ValidateCsrfToken::class);
+
+        $user = User::factory()->create();
+
+        $this->get('/login');
+
+        $guestSessionId = session()->getId();
+        $guestToken = session()->token();
+
+        $response = $this->post('/login', [
+            '_token' => $guestToken,
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
+        $response->assertCookie('XSRF-TOKEN');
+        $this->assertNotSame($guestSessionId, session()->getId());
+        $this->assertNotSame($guestToken, session()->token());
     }
 
     public function test_users_can_not_authenticate_with_invalid_password(): void

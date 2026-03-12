@@ -1,4 +1,3 @@
-import type axios from 'axios'
 import type {
     AuthenticatedPageProps as AuthenticatedPagePropsShape,
     AppUser as AppUserShape,
@@ -18,8 +17,4 @@ declare global {
     }
 
     const route: ZiggyRoute;
-
-    interface Window {
-        axios: typeof axios
-    }
 }

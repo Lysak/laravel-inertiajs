@@ -25,6 +25,7 @@ Run commands from `coffee-shop/` unless noted.
 ## Coding Style & Naming Conventions
 - PHP: follow Laravel conventions; format with `vendor/bin/pint` before PRs.
 - TS/React: frontend code must use TypeScript only. New files should be `.ts`/`.tsx`; do not add `.js`/`.jsx` files. Biome rules apply (`4` spaces, single quotes, semicolons as needed, 100-char line width).
+- For HTTP requests in Node/TypeScript code, do not use `axios`. Use the native `fetch()` available in Node v24 instead.
 - React/Inertia: build UI through components first. Pages should orchestrate data and compose reusable components instead of owning large markup blocks directly.
 - React/Inertia: shared UI must be reused, not copied. If the same table, card, form field group, section shell, or interaction pattern appears in more than one place, extract it into a component and use that component everywhere.
 - React/Inertia: do not duplicate React UI code across pages or components. Put cross-page UI in `resources/js/Components` and page-scoped building blocks in a nearby `Components` or `Partials` folder.
@@ -32,6 +33,13 @@ Run commands from `coffee-shop/` unless noted.
 - Keep GraphQL types/queries/mutations in their dedicated folders.
 - For GraphQL named type lookups used inside wrappers like `Type::nonNull(...)`, do not pass `GraphQL::type(...)` directly. Use a local typed helper that narrows the result to `Type&NullableType` (for example `nullableType('CreateDrinkInput')`) so static analysis stays correct.
 - Always use dependency injection for services/classes; avoid `app(...)` service-locator calls in application code.
+
+## Frontend Data Flow Rules
+- This project intentionally uses Laravel + Inertia + React + Apollo Client + `rebing/graphql-laravel` to gain hands-on experience with that stack. Treat this as a project goal, not accidental complexity.
+- Apollo Client + React against `rebing/graphql-laravel` is intentional in this project, even alongside Inertia. Do not propose removing Apollo, GraphQL Codegen, or the schema dump in favor of Inertia-only data flow unless explicitly requested.
+- Inertia is responsible for page shell, routing, auth-bound pages, and initial page render.
+- Apollo Client is responsible for GraphQL queries and mutations inside React components.
+- Do not duplicate the same resource in both Inertia page props and Apollo cache on the same screen without a clear reason.
 
 ## Backend Architecture Rules
 - For Inertia pages, keep controllers thin: authorize the request, call a dedicated application class, and return `Inertia::render(...)`. Do not place non-trivial Eloquent query building or business rules directly in controllers.

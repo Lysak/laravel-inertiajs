@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\GraphQL\Mutations;
 
 use App\GraphQL\Concerns\ResolvesGraphQLTypes;
+use App\Models\Order;
 use App\Models\User;
 use App\Services\OrderService;
 use GraphQL\Type\Definition\ResolveInfo;
@@ -17,6 +18,10 @@ use Rebing\GraphQL\Support\Mutation;
 class CreateOrderMutation extends Mutation
 {
     use ResolvesGraphQLTypes;
+
+    public function __construct(
+        private readonly OrderService $orderService,
+    ) {}
 
     protected $attributes = [
         'name' => 'createOrder',
@@ -38,7 +43,7 @@ class CreateOrderMutation extends Mutation
         ];
     }
 
-    public function resolve($root, array $args, $context, ResolveInfo $resolveInfo)
+    public function resolve($root, array $args, $context, ResolveInfo $resolveInfo): Order
     {
         $input = $args['input'];
         $user = null;
@@ -55,6 +60,6 @@ class CreateOrderMutation extends Mutation
             ]);
         }
 
-        return app(OrderService::class)->createOrder($user, $input['items'], $input['customer_name'] ?? null);
+        return $this->orderService->createOrder($user, $input['items'], $input['customer_name'] ?? null);
     }
 }

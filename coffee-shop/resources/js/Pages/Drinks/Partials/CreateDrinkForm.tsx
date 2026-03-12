@@ -1,12 +1,15 @@
-import { useForm } from '@inertiajs/react'
 import Checkbox from '@/Components/Checkbox'
 import InputError from '@/Components/InputError'
 import InputLabel from '@/Components/InputLabel'
 import PrimaryButton from '@/Components/PrimaryButton'
 import SurfaceCard from '@/Components/SurfaceCard'
 import TextInput from '@/Components/TextInput'
-import type { ChangeEvent, SubmitEvent } from 'react'
-import type { CreateDrinkFormProps } from '@/types/page-props'
+import { useEffect, useState, type ChangeEvent, type SubmitEvent } from 'react'
+
+type DrinkCategoryOption = {
+    id: string
+    name: string
+}
 
 type CreateDrinkFormData = {
     category_id: string
@@ -15,49 +18,91 @@ type CreateDrinkFormData = {
     is_available: boolean
 }
 
-export default function CreateDrinkForm({ categories }: CreateDrinkFormProps) {
-    const { data, setData, post, processing, errors, reset } = useForm<CreateDrinkFormData>({
-        category_id: categories[0] ? String(categories[0].id) : '',
-        name: '',
-        price: '',
-        is_available: true,
-    })
+type CreateDrinkFormErrors = {
+    category_id?: string
+    name?: string
+    price?: string
+    is_available?: string
+    submit?: string
+}
 
-    const submit = (event: SubmitEvent<HTMLFormElement>) => {
+type CreateDrinkFormProps = {
+    categories: DrinkCategoryOption[]
+    errors: CreateDrinkFormErrors
+    onSubmit: (data: CreateDrinkFormData) => Promise<boolean>
+    processing: boolean
+}
+
+const initialFormState = (categories: DrinkCategoryOption[]): CreateDrinkFormData => ({
+    category_id: categories[0]?.id ?? '',
+    name: '',
+    price: '',
+    is_available: true,
+})
+
+export default function CreateDrinkForm({
+    categories,
+    errors,
+    onSubmit,
+    processing,
+}: CreateDrinkFormProps) {
+    const [data, setData] = useState<CreateDrinkFormData>(() => initialFormState(categories))
+
+    useEffect(() => {
+        setData((current) => ({
+            ...current,
+            category_id: current.category_id === '' ? (categories[0]?.id ?? '') : current.category_id,
+        }))
+    }, [categories])
+
+    const reset = () => {
+        setData(initialFormState(categories))
+    }
+
+    const submit = async (event: SubmitEvent<HTMLFormElement>) => {
         event.preventDefault()
 
-        post(route('drinks.store'), {
-            preserveScroll: true,
-            onSuccess: () => {
-                reset()
-                setData('category_id', categories[0] ? String(categories[0].id) : '')
-                setData('is_available', true)
-            },
-        })
+        const wasCreated = await onSubmit(data)
+
+        if (wasCreated) {
+            reset()
+        }
     }
 
     const handleCategoryChange = (event: ChangeEvent<HTMLSelectElement>) => {
-        setData('category_id', event.target.value)
+        setData((current) => ({
+            ...current,
+            category_id: event.target.value,
+        }))
     }
 
     const handleNameChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setData('name', event.target.value)
+        setData((current) => ({
+            ...current,
+            name: event.target.value,
+        }))
     }
 
     const handlePriceChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setData('price', event.target.value)
+        setData((current) => ({
+            ...current,
+            price: event.target.value,
+        }))
     }
 
     const handleAvailabilityChange = (event: ChangeEvent<HTMLInputElement>) => {
-        setData('is_available', event.target.checked)
+        setData((current) => ({
+            ...current,
+            is_available: event.target.checked,
+        }))
     }
 
     return (
         <SurfaceCard className="p-6">
             <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Add drink from web</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Add drink with GraphQL</h3>
                 <p className="mt-1 text-sm text-gray-600">
-                    This form uses the regular Laravel web flow and stores a new catalog item.
+                    This form loads categories and creates catalog items through Apollo.
                 </p>
             </div>
 
@@ -113,6 +158,7 @@ export default function CreateDrinkForm({ categories }: CreateDrinkFormProps) {
                 </label>
 
                 <div className="md:col-span-2">
+                    <InputError className="mb-3" message={errors.submit} />
                     <PrimaryButton disabled={processing || categories.length === 0}>
                         Create drink
                     </PrimaryButton>
