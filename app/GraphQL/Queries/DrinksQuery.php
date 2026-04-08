@@ -7,6 +7,7 @@ namespace App\GraphQL\Queries;
 use App\GraphQL\Concerns\ResolvesGraphQLTypes;
 use App\Models\Drink;
 use App\Services\StatsService;
+use App\Support\ReadModelCache;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,6 +24,7 @@ class DrinksQuery extends Query
 
     public function __construct(
         private readonly StatsService $statsService,
+        private readonly ReadModelCache $readModelCache,
     ) {}
 
     public function type(): Type
@@ -68,59 +70,82 @@ class DrinksQuery extends Query
 
     public function resolve($root, array $args, $context, ResolveInfo $resolveInfo): array
     {
-        $query = Drink::query()->with('category');
-
-        $query
-            ->when(
-                filled($args['search'] ?? null),
-                fn (Builder $builder) => $builder->where('name', 'like', '%'.$args['search'].'%')
-            )
-            ->when(
-                isset($args['category_id']),
-                fn (Builder $builder) => $builder->where('category_id', (int) $args['category_id'])
-            )
-            ->when(
-                isset($args['is_available']),
-                fn (Builder $builder) => $builder->where('is_available', (bool) $args['is_available'])
-            )
-            ->when(
-                isset($args['min_price']),
-                fn (Builder $builder) => $builder->where('price', '>=', $args['min_price'])
-            )
-            ->when(
-                isset($args['max_price']),
-                fn (Builder $builder) => $builder->where('price', '<=', $args['max_price'])
-            );
-
         $sortBy = in_array($args['sort_by'], ['name', 'price', 'created_at'], true)
             ? $args['sort_by']
             : 'name';
         $sortDirection = strtolower((string) $args['sort_direction']) === 'desc' ? 'desc' : 'asc';
+        $withStats = ($args['with_stats'] ?? false) === true;
+        $cacheArgs = [
+            'limit' => isset($args['limit']) ? (int) $args['limit'] : null,
+            'search' => filled($args['search'] ?? null) ? (string) $args['search'] : null,
+            'category_id' => isset($args['category_id']) ? (int) $args['category_id'] : null,
+            'is_available' => isset($args['is_available']) ? (bool) $args['is_available'] : null,
+            'min_price' => isset($args['min_price']) ? (float) $args['min_price'] : null,
+            'max_price' => isset($args['max_price']) ? (float) $args['max_price'] : null,
+            'sort_by' => $sortBy,
+            'sort_direction' => $sortDirection,
+            'with_stats' => $withStats,
+        ];
+        $scopes = $withStats ? ['catalog', 'drink_stats'] : ['catalog'];
 
-        $drinks = $query
-            ->orderBy($sortBy, $sortDirection)
-            ->when(
-                isset($args['limit']),
-                fn (Builder $builder) => $builder->limit((int) $args['limit'])
-            )
-            ->get();
+        /** @var array<int, array<string, mixed>|Drink> $drinks */
+        $drinks = $this->readModelCache->remember(
+            $scopes,
+            'graphql:drinks:' . sha1(serialize($cacheArgs)),
+            (int) config('read-model-cache.ttls.catalog', 300),
+            function () use ($args, $sortBy, $sortDirection, $withStats): array {
+                $query = Drink::query()->with('category');
 
-        if (($args['with_stats'] ?? false) !== true) {
-            return $drinks->all();
-        }
+                $query
+                    ->when(
+                        filled($args['search'] ?? null),
+                        fn (Builder $builder) => $builder->where('name', 'like', '%' . $args['search'] . '%')
+                    )
+                    ->when(
+                        isset($args['category_id']),
+                        fn (Builder $builder) => $builder->where('category_id', (int) $args['category_id'])
+                    )
+                    ->when(
+                        isset($args['is_available']),
+                        fn (Builder $builder) => $builder->where('is_available', (bool) $args['is_available'])
+                    )
+                    ->when(
+                        isset($args['min_price']),
+                        fn (Builder $builder) => $builder->where('price', '>=', $args['min_price'])
+                    )
+                    ->when(
+                        isset($args['max_price']),
+                        fn (Builder $builder) => $builder->where('price', '<=', $args['max_price'])
+                    );
 
-        $statsByDrink = $this->statsService->forDrinkIds($drinks->pluck('id')->all());
+                $drinks = $query
+                    ->orderBy($sortBy, $sortDirection)
+                    ->when(
+                        isset($args['limit']),
+                        fn (Builder $builder) => $builder->limit((int) $args['limit'])
+                    )
+                    ->get();
 
-        return $drinks
-            ->map(function (Drink $drink) use ($statsByDrink): array {
-                return [
-                    ...$drink->toArray(),
-                    'stats' => $statsByDrink[$drink->id] ?? [
-                        'total_sold' => 0,
-                        'revenue' => 0.0,
-                    ],
-                ];
-            })
-            ->all();
+                if ($withStats === false) {
+                    return $drinks->all();
+                }
+
+                $statsByDrink = $this->statsService->forDrinkIds($drinks->pluck('id')->all());
+
+                return $drinks
+                    ->map(function (Drink $drink) use ($statsByDrink): array {
+                        return [
+                            ...$drink->toArray(),
+                            'stats' => $statsByDrink[$drink->id] ?? [
+                                'total_sold' => 0,
+                                'revenue' => 0.0,
+                            ],
+                        ];
+                    })
+                    ->all();
+            },
+        );
+
+        return $drinks;
     }
 }

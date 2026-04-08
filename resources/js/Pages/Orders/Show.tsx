@@ -10,6 +10,7 @@ import { Head, Link } from '@inertiajs/react'
 
 export default function OrderShow({ orderId }: OrderShowPageProps) {
     const { data, error, loading } = useQuery(ORDER_QUERY, {
+        fetchPolicy: 'cache-and-network',
         variables: { id: String(orderId) },
     })
 

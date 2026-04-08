@@ -11,10 +11,22 @@ use App\Models\User;
 
 class GetDashboardStats
 {
+    public function __construct(private readonly DashboardStatsCache $dashboardStatsCache)
+    {
+    }
+
     /**
      * @return array{orders:int, drinks:int, customers:int, revenue:float}
      */
     public function handle(): array
+    {
+        return $this->dashboardStatsCache->remember(fn (): array => $this->resolveStats());
+    }
+
+    /**
+     * @return array{orders:int, drinks:int, customers:int, revenue:float}
+     */
+    private function resolveStats(): array
     {
         return [
             'orders' => Order::query()->count(),

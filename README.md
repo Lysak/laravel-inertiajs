@@ -1,136 +1,207 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel InertiaJS (Coffee Shop)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This repository contains the application in the `coffee-shop/` directory.
 
-## Project Rules
+## Quick Start (Local)
 
-- Frontend source code under `resources/js/` must use TypeScript only.
-- React components and Inertia pages must use `.tsx`.
-- Non-React frontend modules must use `.ts`.
-- Do not add new `.js` or `.jsx` files to the application source tree.
-- Mark service, action, and query classes as `readonly` when all their state is constructor-injected and immutable.
-- Mark anonymous functions as `static` whenever they do not use `$this`, late static binding, or closure rebinding.
-
-## GraphQL Examples
-
-Create a drink with GraphQL:
-
-```graphql
-mutation CreateDrink($input: CreateDrinkInput!) {
-  createDrink(input: $input) {
-    id
-    name
-    price
-    is_available
-    category {
-      id
-      name
-    }
-  }
-}
+```bash
+cd coffee-shop
+nvm use
+composer setup
+php artisan db:seed
+composer dev
 ```
 
-Variables:
+## Step by Step (First Run)
 
-```json
-{
-  "input": {
-    "category_id": 1,
-    "name": "Orange Tonic",
-    "price": 4.75,
-    "is_available": true
-  }
-}
+```bash
+cd coffee-shop
+nvm use
+composer install
+pnpm install
+cp .env.example .env
+touch database/database.sqlite
+php artisan key:generate
+php artisan migrate
+php artisan db:seed
+composer dev
 ```
 
-Filter drinks and request only the fields you need:
-
-```graphql
-query FilteredDrinks($categoryId: ID!) {
-  drinks(
-    category_id: $categoryId
-    search: "tonic"
-    is_available: true
-    min_price: 4
-    max_price: 8
-    sort_by: "price"
-    sort_direction: "desc"
-    with_stats: true
-  ) {
-    id
-    name
-    price
-    category {
-      name
-    }
-    stats {
-      total_sold
-      revenue
-    }
-  }
-}
+```
+sudo rm -R ./node_modules
+sudo rm -R ./package-lock.json
+sudo rm -R ./pnpm-lock.yaml
+sudo rm -R ./yarn.lock
+sudo rm -R ./yarn-error.log
+sudo rm -R ./.pnpm-store
+corepack use pnpm@latest-10
 ```
 
-Typical GraphQL patterns used here:
+## Test Accounts
 
-- field selection: client asks only for `id`, `name`, `price`, or nested `category`
-- filtering: `search`, `category_id`, `is_available`, `min_price`, `max_price`
-- sorting: `sort_by`, `sort_direction`
-- nested relations: `category { name }`
-- optional expensive fields: `with_stats` when you need sales metrics
+- `admin@example.com` / `password`
+- `barista@example.com` / `password`
 
-## About Laravel
+## What `composer dev` Starts
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Laravel server (`php artisan serve`)
+- Queue worker (`php artisan queue:listen`)
+- Logs (`php artisan pail`)
+- Vite dev server (`pnpm run dev`)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+After startup, open: `http://127.0.0.1:8000`
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```
+ Тут ланцюжок такий:
 
-## Learning Laravel
+  database / Eloquent -> PHP GraphQL query classes -> schema.graphql -> GraphQL Codegen -> resources/js/graphql/generated/graphql.ts ->
+  Dashboard.tsx
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+  Звідки генерується graphql.ts
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+  1. Бекенд описує GraphQL-схему через PHP-класи, зареєстровані в config/graphql.php.
+  2. Команда php artisan graphql:schema-dump з routes/console.php дампить цю схему у resources/graphql/schema.graphql.
+  3. Далі graphql-codegen бере:
+      - схему з codegen.ts
+      - frontend-документи з resources/js/graphql/documents/**/*.graphql
+  4. І генерує файли в resources/js/graphql/generated/graphql.ts та resources/js/graphql/generated/gql.ts.
 
-## Laravel Sponsors
+  Команди для цього вже є в package.json:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+  - pnpm graphql:schema
+  - pnpm graphql:codegen
+  - pnpm graphql:generate
 
-### Premium Partners
+  Які “оригінальні дані”
+  Не generated/graphql.ts. Це лише згенеровані TypeScript-типи і DocumentNode.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+  Оригінальне джерело:
 
-## Contributing
+  - структура API: PHP GraphQL-класи на бекенді
+  - реальні дані: база даних через Eloquent
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+  Для dashboardStats:
 
-## Code of Conduct
+  - поле зареєстроване в app/GraphQL/Queries/DashboardStatsQuery.php
+  - дані рахує app/Queries/Dashboard/GetDashboardStats.php
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+  Для orders:
 
-## Security Vulnerabilities
+  - GraphQL query в app/GraphQL/Queries/OrdersQuery.php
+  - вибірка з БД в app/Queries/Orders/GetRecentOrders.php
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+  Звідки береться DASHBOARD_QUERY
+  У resources/js/Pages/Dashboard.tsx він імпортується так:
 
-## License
+  - з resources/js/graphql/queries/dashboard.ts
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+  А там просто реекспорт:
+
+  - DashboardQueryDocument з resources/js/graphql/generated/graphql.ts
+
+  Сам DashboardQueryDocument згенерований із цього файлу:
+
+  - resources/js/graphql/documents/dashboard.graphql
+
+  Тобто конкретно для Dashboard шлях такий:
+
+  dashboard.graphql -> codegen -> generated/graphql.ts -> queries/dashboard.ts -> Pages/Dashboard.tsx
+
+  Якщо хочеш, я можу далі розписати це ще простіше на одному конкретному прикладі: “що відбувається від dashboard.graphql до відповіді з /graphql
+  крок за кроком”.
+```
+
+```
+Так. На твоєму Dashboard це відбувається так:
+
+  1. У файлі dashboard.graphql лежить сам GraphQL-запит, приблизно такого змісту:
+
+  query DashboardQuery($limit: Int!) {
+      dashboardStats {
+          orders
+          drinks
+          customers
+          revenue
+      }
+      orders(limit: $limit) {
+          id
+          customer_name
+          status
+          items_count
+          total
+      }
+  }
+
+  2. graphql-codegen читає цей файл і схему з schema.graphql, після чого генерує:
+
+  - TypeScript-типи відповіді
+  - типи змінних
+  - DashboardQueryDocument
+
+  У тебе це з’являється в generated/graphql.ts.
+
+  3. Файл queries/dashboard.ts просто експортує цей згенерований документ під зручним ім’ям DASHBOARD_QUERY.
+  4. У Dashboard.tsx Apollo викликає:
+
+  useQuery(DASHBOARD_QUERY, {
+      variables: { limit: 5 },
+  })
+
+  5. Apollo Client відправляє HTTP POST на GraphQL endpoint /graphql з тілом приблизно такого вигляду:
+
+  {
+    "query": "...текст DashboardQuery...",
+    "variables": {
+      "limit": 5
+    }
+  }
+
+  6. На бекенді rebing/graphql-laravel дивиться на поля запиту:
+
+  - dashboardStats
+  - orders(limit: 5)
+
+  І знаходить відповідні PHP query-класи, зареєстровані в config/graphql.php.
+
+  7. Для dashboardStats викликається DashboardStatsQuery.php, а той уже звертається до GetDashboardStats.php, який рахує дані з БД.
+  8. Для orders(limit: 5) викликається OrdersQuery.php, а він використовує GetRecentOrders.php, який робить Eloquent query.
+  9. GraphQL сервер збирає результат в один JSON і повертає його в такому форматі:
+
+  {
+    "data": {
+      "dashboardStats": {
+        "orders": 12,
+        "drinks": 8,
+        "customers": 20,
+        "revenue": 154.5
+      },
+      "orders": [
+        {
+          "id": "1",
+          "customer_name": "John",
+          "status": "new",
+          "items_count": 2,
+          "total": 12.5
+        }
+      ]
+    }
+  }
+
+  10. Apollo кладе це в data, і в Dashboard.tsx ти вже читаєш:
+
+  const stats = data?.dashboardStats;
+  const recentOrders = data?.orders ?? [];
+
+  Коротко:
+  dashboard.graphql описує що попросити -> codegen робить TS-обгортку -> Apollo відправляє запит -> PHP GraphQL резолвери дістають дані з БД -> /
+  graphql повертає JSON -> React рендерить.
+
+  Якщо хочеш, далі можу окремо пояснити різницю між:
+
+  - generated/graphql.ts
+  - generated/gql.ts
+  - файлами в resources/js/graphql/documents/
+    бо саме тут зазвичай найбільше плутанини.
+
+
+```

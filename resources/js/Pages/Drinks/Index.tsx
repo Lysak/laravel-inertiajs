@@ -40,8 +40,39 @@ export default function DrinksIndex() {
     const [formErrors, setFormErrors] = useState<CreateDrinkFormErrors>({})
     const { data, error, loading } = useQuery(DRINKS_INDEX_QUERY)
     const [createDrink, { loading: processing }] = useMutation(CREATE_DRINK_MUTATION, {
-        refetchQueries: [{ query: DRINKS_INDEX_QUERY }],
-        awaitRefetchQueries: true,
+        update(cache, { data: mutationData }) {
+            const createdDrink = mutationData?.createDrink
+
+            if (!createdDrink) {
+                return
+            }
+
+            cache.updateQuery(
+                {
+                    query: DRINKS_INDEX_QUERY,
+                },
+                (existing) => {
+                    if (!existing) {
+                        return existing
+                    }
+
+                    return {
+                        ...existing,
+                        drinks: [
+                            {
+                                ...createdDrink,
+                                stats: {
+                                    __typename: 'DrinkStats' as const,
+                                    total_sold: 0,
+                                    revenue: 0,
+                                },
+                            },
+                            ...existing.drinks.filter((drink) => drink.id !== createdDrink.id),
+                        ].sort((left, right) => left.name.localeCompare(right.name)),
+                    }
+                },
+            )
+        },
     })
 
     const categories =

@@ -6,18 +6,25 @@ use App\Models\Drink;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
+use App\Queries\Dashboard\DashboardStatsCache;
+use App\Support\ReadModelCache;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
+    public function __construct(
+        private readonly DashboardStatsCache $dashboardStatsCache,
+        private readonly ReadModelCache $readModelCache,
+    ) {}
+
     /**
      * @param  array<int, array{drink_id:int, quantity:int}>  $items
      */
     public function createOrder(User $user, array $items, ?string $customerName = null): Order
     {
-        return DB::transaction(function () use ($user, $items, $customerName): Order {
+        $order = DB::transaction(function () use ($user, $items, $customerName): Order {
             $normalizedItems = collect($items)
                 ->groupBy('drink_id')
                 ->map(static fn ($lines) => [
@@ -60,6 +67,11 @@ class OrderService
 
             return $order->load(['user', 'items.drink']);
         });
+
+        $this->dashboardStatsCache->forget();
+        $this->readModelCache->invalidate(['orders', 'drink_stats']);
+
+        return $order;
     }
 
     public function markPaid(Order $order): Order
@@ -67,6 +79,8 @@ class OrderService
         if (in_array($order->status, ['new', 'in_progress'], true)) {
             $order->update(['status' => 'paid']);
         }
+
+        $this->readModelCache->invalidate(['orders']);
 
         return $order->load(['user', 'items.drink']);
     }

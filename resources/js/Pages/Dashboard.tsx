@@ -9,6 +9,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'
 
 export default function Dashboard() {
     const { data, error, loading } = useQuery(DASHBOARD_QUERY, {
+        fetchPolicy: 'cache-and-network',
         variables: { limit: 5 },
     })
 

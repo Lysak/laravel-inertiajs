@@ -41,6 +41,7 @@
     },
     "dependencies": {
         "@apollo/client": "^4.1.6",
+        "@dotenvx/dotenvx": "^1.60.2",
         "graphql": "^16.13.1"
     }
 }

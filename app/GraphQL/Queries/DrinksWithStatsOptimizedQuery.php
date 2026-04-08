@@ -7,6 +7,7 @@ namespace App\GraphQL\Queries;
 use App\GraphQL\Concerns\ResolvesGraphQLTypes;
 use App\Models\Drink;
 use App\Services\StatsService;
+use App\Support\ReadModelCache;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use Rebing\GraphQL\Support\Query;
@@ -15,7 +16,10 @@ class DrinksWithStatsOptimizedQuery extends Query
 {
     use ResolvesGraphQLTypes;
 
-    public function __construct(private readonly StatsService $statsService) {}
+    public function __construct(
+        private readonly StatsService $statsService,
+        private readonly ReadModelCache $readModelCache,
+    ) {}
 
     protected $attributes = [
         'name' => 'drinksWithStatsOptimized',
@@ -39,21 +43,31 @@ class DrinksWithStatsOptimizedQuery extends Query
 
     public function resolve($root, array $args, $context, ResolveInfo $resolveInfo): array
     {
-        $drinks = Drink::query()
-            ->catalogWithCategory((int) $args['limit'])
-            ->get();
+        /** @var array<int, array<string, mixed>> $drinks */
+        $drinks = $this->readModelCache->remember(
+            ['catalog', 'drink_stats'],
+            'graphql:drinks-with-stats-optimized:limit:' . (int) $args['limit'],
+            (int) config('read-model-cache.ttls.catalog', 300),
+            function () use ($args): array {
+                $drinks = Drink::query()
+                    ->catalogWithCategory((int) $args['limit'])
+                    ->get();
 
-        $statsByDrink = $this->statsService->forDrinkIds($drinks->pluck('id')->all());
+                $statsByDrink = $this->statsService->forDrinkIds($drinks->pluck('id')->all());
 
-        return $drinks->map(static function (Drink $drink) use ($statsByDrink): array {
-            return [
-                'id' => $drink->id,
-                'name' => $drink->name,
-                'price' => (float) $drink->price,
-                'is_available' => $drink->is_available,
-                'category' => $drink->category,
-                'stats' => $statsByDrink[$drink->id] ?? ['total_sold' => 0, 'revenue' => 0.0],
-            ];
-        })->all();
+                return $drinks->map(static function (Drink $drink) use ($statsByDrink): array {
+                    return [
+                        'id' => $drink->id,
+                        'name' => $drink->name,
+                        'price' => (float) $drink->price,
+                        'is_available' => $drink->is_available,
+                        'category' => $drink->category,
+                        'stats' => $statsByDrink[$drink->id] ?? ['total_sold' => 0, 'revenue' => 0.0],
+                    ];
+                })->all();
+            },
+        );
+
+        return $drinks;
     }
 }

@@ -3,10 +3,17 @@
 namespace App\Actions\Drinks;
 
 use App\Models\Drink;
+use App\Queries\Dashboard\DashboardStatsCache;
+use App\Support\ReadModelCache;
 use Illuminate\Validation\ValidationException;
 
-class CreateDrink
+readonly class CreateDrink
 {
+    public function __construct(
+        private DashboardStatsCache $dashboardStatsCache,
+        private ReadModelCache $readModelCache,
+    ) {}
+
     /**
      * @param  array{category_id:int, name:string, price:numeric-string|float|int, is_available:bool}  $attributes
      */
@@ -23,11 +30,16 @@ class CreateDrink
             ]);
         }
 
-        return Drink::query()->create([
+        $drink = Drink::query()->create([
             'category_id' => (int) $attributes['category_id'],
             'name' => $attributes['name'],
             'price' => $attributes['price'],
             'is_available' => (bool) $attributes['is_available'],
         ])->load('category');
+
+        $this->dashboardStatsCache->forget();
+        $this->readModelCache->invalidate(['catalog']);
+
+        return $drink;
     }
 }

@@ -12,6 +12,7 @@ const ORDERS_LIMIT = 25
 
 export default function OrdersIndex() {
     const { data, error, loading } = useQuery(ORDERS_QUERY, {
+        fetchPolicy: 'cache-and-network',
         variables: { limit: ORDERS_LIMIT },
     })
 
